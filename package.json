@@ -39,7 +39,8 @@
     "version": "npm run changeset version && npm run update-version-vars",
     "update-version-vars": "node scripts/update-version-variables.js",
     "release": "npm run build && npm run changeset publish",
-    "benchmark:size": "wireit"
+    "benchmark:size": "wireit",
+    "publish:oddsquad": "node oddsquad-packages/vite-plugin-lit/scripts/publish.mjs"
   },
   "wireit": {
     "build": {
