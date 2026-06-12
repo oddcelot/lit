@@ -93,6 +93,16 @@ working afterwards. One caveat: the task _function_ is captured by the
 controller at construction, so editing its body only affects future
 instances — reload to swap fetch logic on live ones.
 
+## Virtualizer
+
+`@lit-labs/virtualizer` behaves well under patches: the
+`<lit-virtualizer>` element holds its layout and scroll state, so as long
+as it lives in its own template literal, header edits and even row-template
+edits (the `renderItem` arrow is an interpolation _value_ — its body isn't
+part of the outer literal's strings) preserve the element, the scroll
+offset, and the visible window. Re-created `items` arrays with equal
+content reflow without moving the scroller.
+
 ## Limitations
 
 - **Standard `accessor` decorators**: reactive properties declared with
