@@ -11,6 +11,7 @@ import './hmr-styled.js';
 import './hmr-probe.js';
 import './hmr-properties.js';
 import './hmr-signals.js';
+import './hmr-clock.js';
 
 export interface HmrProbeState {
   updates: number;

@@ -30,6 +30,11 @@
         border-radius: 8px;
         padding: 1rem;
       }
+      /* Clock theming from outside the shadow root — CSS shadow parts
+         pierce in from the page (try ::part(second), ::part(hour), …): */
+      hmr-clock::part(face) {
+        filter: drop-shadow(0 1px 2px rgba(29, 53, 87, 0.35));
+      }
     </style>
   </head>
   <body>
@@ -44,6 +49,7 @@
       <hmr-static-props></hmr-static-props>
       <hmr-signal-counter></hmr-signal-counter>
       <hmr-signal-mirror></hmr-signal-mirror>
+      <hmr-clock></hmr-clock>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
