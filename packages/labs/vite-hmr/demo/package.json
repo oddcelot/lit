@@ -1,0 +1,22 @@
+{
+  "name": "vite-plugin-lit-demo",
+  "description": "StackBlitz demo for the Lit HMR Vite plugin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite"
+  },
+  "dependencies": {
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "^0.0.3",
+    "vite": "^8.0.16"
+  },
+  "stackblitz": {
+    "installDependencies": true,
+    "startCommand": "npm run dev"
+  }
+}

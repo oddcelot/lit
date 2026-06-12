@@ -127,6 +127,18 @@ content reflow without moving the scroller.
 - The Rolldown full-bundle dev mode is unsupported; the plugin targets the
   standard Vite dev server pipeline.
 
+## Demo
+
+[Open the demo on StackBlitz](https://stackblitz.com/github/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/demo?file=src%2Fdemo-counter.ts)
+— the Vite dev server runs in a WebContainer, so HMR works live in the
+browser: click the counter, type in the input, then edit `src/*.ts` and
+watch state, focus, and DOM identity survive the patch.
+
+The demo in [`demo/`](./demo/) is a self-contained Vite project. It
+installs the interim npm publish of this plugin
+(`@oddsquad/vite-plugin-lit`); switch the dependency and import to
+`@lit-labs/vite-hmr` once that is published.
+
 ## Playground
 
 A manually inspectable fixture app (also the source for the e2e fixtures):

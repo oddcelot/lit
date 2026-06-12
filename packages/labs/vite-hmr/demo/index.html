@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lit HMR demo</title>
+    <link rel="icon" href="data:," />
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 1rem;
+        background: #fff;
+        color: #1a1a2e;
+      }
+      #banner {
+        padding: 0.75rem 1rem;
+        background: #1a1a2e;
+        color: #fff;
+        border-radius: 8px;
+        line-height: 1.5;
+      }
+      #banner code {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.1em 0.4em;
+        border-radius: 4px;
+      }
+      #banner .hud {
+        font-variant-numeric: tabular-nums;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      main > * {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="banner">
+      <strong>True HMR for Lit components.</strong>
+      Click the counter, type in the input, then edit a template, label, or
+      color in <code>src/*.ts</code> — state, focus, and DOM identity survive
+      the patch.
+      <span class="hud">HMR updates: <span id="hmr-updates">0</span></span>
+    </div>
+    <main>
+      <demo-counter></demo-counter>
+      <demo-input></demo-input>
+      <demo-styled></demo-styled>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
