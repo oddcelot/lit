@@ -47,6 +47,7 @@ interface ReactiveCtorLike extends CustomElementConstructor {
   elementProperties?: Map<PropertyKey, unknown>;
   elementStyles?: ReadonlyArray<unknown>;
   observedAttributes?: readonly string[];
+  _initializers?: Array<(element: unknown) => void>;
 }
 
 interface TagRecord {
@@ -329,10 +330,26 @@ const hotPatch = (
 
     // 7. Update live instances.
     const newPropertyKeys = NewClass.elementProperties?.keys() ?? [];
+    // After the static sync this is the NEW class's initializer list.
+    const initializers = OldClass._initializers;
     for (const el of [...record.instances]) {
       if (state.options.reconnect) {
         el.disconnectedCallback?.();
         el.connectedCallback?.();
+      }
+      // Decorator-created reactive controllers (e.g. @lit/context's
+      // @provide/@consume) live in per-class-evaluation closures keyed by
+      // instance via addInitializer. Re-running the initializers enrolls
+      // live instances in the new closures — without this, the first
+      // assignment through a copied accessor throws and we'd full-reload.
+      // Controllers from previous evaluations stay attached but inert
+      // (everything flows through the newest closures); that's bounded by
+      // edit count and dev-only. Runs before the value restore so e.g. a
+      // re-created ContextProvider exists when the restore pushes into it.
+      if (Array.isArray(initializers)) {
+        for (const initialize of initializers) {
+          initialize(el);
+        }
       }
       const values = snapshots.get(el);
       if (values !== undefined) {

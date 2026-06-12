@@ -68,6 +68,21 @@ re-created (with its initial value) when that module re-executes. Keep
 shared signals in their own non-component module and import them — that
 module never re-executes, so the signal object survives.
 
+## Context
+
+`@lit/context` is supported, including the experimental-decorator
+`@provide`/`@consume` forms: those keep per-class-evaluation state (a
+WeakMap of instance → controller populated via `addInitializer`), so during
+a patch the runtime re-runs the class initializers for live instances to
+enroll them in the new closures, then restores the provided value through
+the new accessors — subscribed consumers keep both their value and a live
+subscription. Controllers created by previous evaluations stay attached but
+inert; that's bounded by edit count and cleared by any reload.
+
+Define the context key in its own module (and prefer string keys —
+`createContext('my-context')` is identity-by-value, a `Symbol()` key is
+not), the same way you'd isolate any shared module-level state.
+
 ## Limitations
 
 - **Standard `accessor` decorators**: reactive properties declared with
