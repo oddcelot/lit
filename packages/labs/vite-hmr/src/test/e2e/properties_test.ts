@@ -50,6 +50,16 @@ test('@property and array/object @state survive; accessors stay live', async () 
     'label: assigned'
   );
   expect(await shadowText(page, 'hmr-properties >> #factor')).toBe('factor: 7');
+  // The theme state actually themes the page (html[data-theme] drives the
+  // css custom properties in index.html).
+  await expect
+    .poll(() =>
+      page.evaluate(() => ({
+        theme: document.documentElement.dataset['theme'],
+        background: getComputedStyle(document.body).backgroundColor,
+      }))
+    )
+    .toEqual({theme: 'dark', background: 'rgb(20, 20, 31)'});
   // reflect: true wrote the attribute.
   await expect
     .poll(() =>
@@ -79,6 +89,10 @@ test('@property and array/object @state survive; accessors stay live', async () 
   );
   expect(await shadowText(page, 'hmr-properties >> #factor')).toBe('factor: 7');
   expect(await sameAsKept(page, 'props-host', 'hmr-properties')).toBe(true);
+  // The page theme survived the patch (state restored → updated() re-ran).
+  expect(
+    await page.evaluate(() => document.documentElement.dataset['theme'])
+  ).toBe('dark');
 
   // The patched accessors are still functional: state mutation re-renders
   // and a property assignment still reflects to the attribute.

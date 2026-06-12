@@ -40,10 +40,10 @@ export class HmrDigitalClock extends SignalWatcher(LitElement) {
       display: block;
       font-family: ui-monospace, monospace;
       font-size: 2rem;
-      color: var(--digital-color, #1d3557);
+      color: var(--digital-color, var(--fg, #1d3557));
     }
     #tz {
-      color: #666;
+      color: var(--muted, #666);
       font-size: 0.85em;
     }
     label {
@@ -58,7 +58,7 @@ export class HmrDigitalClock extends SignalWatcher(LitElement) {
     }
     .badge {
       font-size: 0.8em;
-      color: #666;
+      color: var(--muted, #666);
     }
   `;
 

@@ -21,7 +21,7 @@ export class HmrSiblings extends LitElement {
     }
     .badge {
       font-size: 0.8em;
-      color: #666;
+      color: var(--muted, #666);
     }
   `;
 

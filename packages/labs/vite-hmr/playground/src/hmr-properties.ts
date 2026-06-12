@@ -18,7 +18,7 @@ export class HmrProperties extends LitElement {
   static override styles = css`
     .badge {
       font-size: 0.8em;
-      color: #666;
+      color: var(--muted, #666);
     }
   `;
 
@@ -56,6 +56,10 @@ export class HmrProperties extends LitElement {
     if (badge !== null) {
       badge.textContent = `renders: ${this.renders}`;
     }
+    // Apply the theme state to the page (index.html maps [data-theme] to
+    // css custom properties). Because the @state survives a hot patch and
+    // this runs after the patch's re-render, the theme survives too.
+    document.documentElement.dataset['theme'] = this.config.theme;
   }
 
   private addItem() {

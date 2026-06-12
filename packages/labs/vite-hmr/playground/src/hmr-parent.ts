@@ -17,7 +17,7 @@ export class HmrParent extends LitElement {
   static override styles = css`
     .badge {
       font-size: 0.8em;
-      color: #666;
+      color: var(--muted, #666);
     }
   `;
 
