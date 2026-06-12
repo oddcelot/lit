@@ -21,15 +21,9 @@ import cssContent from './hmr-linked-css.css?inline';
  * refreshes, and the component re-renders with the updated <link> href.
  */
 
-// Module-level cache: on HMR re-execution the `let` resets to '' and the
-// import gets the new CSS string, so the next render creates a fresh URL.
-let _url = '';
-const getCssUrl = () => {
-  if (!_url) {
-    _url = URL.createObjectURL(new Blob([cssContent], {type: 'text/css'}));
-  }
-  return _url;
-};
+// Re-created on each HMR re-execution, so the <link> href changes and the
+// browser fetches the new CSS.
+const cssUrl = URL.createObjectURL(new Blob([cssContent], {type: 'text/css'}));
 
 @customElement('hmr-linked-css')
 export class HmrLinkedCss extends LitElement {
@@ -37,7 +31,7 @@ export class HmrLinkedCss extends LitElement {
 
   override render() {
     return html`
-      <link rel="stylesheet" href="${getCssUrl()}" />
+      <link rel="stylesheet" href="${cssUrl}" />
       <h2>Linked CSS</h2>
       <div id="linked-box">styled via &lt;link&gt;</div>
       <span class="badge" id="badge">renders: 0</span>

@@ -18,6 +18,7 @@ import './hmr-task.js';
 import './hmr-virtualizer.js';
 import './hmr-linked-css.js';
 import './hmr-import-css.js';
+import './hmr-css-url.js';
 
 export interface HmrProbeState {
   updates: number;

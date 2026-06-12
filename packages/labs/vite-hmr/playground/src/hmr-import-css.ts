@@ -21,15 +21,9 @@ import cssContent from './hmr-import-css.css?inline';
  * with the updated @import URL.
  */
 
-// Module-level cache: on HMR re-execution the `let` resets to '' and the
-// import gets the new CSS string, so the next render creates a fresh URL.
-let _url = '';
-const getCssUrl = () => {
-  if (!_url) {
-    _url = URL.createObjectURL(new Blob([cssContent], {type: 'text/css'}));
-  }
-  return _url;
-};
+// Re-created on each HMR re-execution, so the @import URL changes and the
+// browser fetches the new CSS.
+const cssUrl = URL.createObjectURL(new Blob([cssContent], {type: 'text/css'}));
 
 @customElement('hmr-import-css')
 export class HmrImportCss extends LitElement {
@@ -38,7 +32,7 @@ export class HmrImportCss extends LitElement {
   override render() {
     return html`
       <style>
-        @import url('${getCssUrl()}');
+        @import url('${cssUrl}');
       </style>
       <h2>@import CSS</h2>
       <div id="imported-box">styled via @import</div>
