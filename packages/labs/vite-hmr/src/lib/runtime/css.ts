@@ -5,66 +5,26 @@
  */
 
 /**
- * Browser helpers for loading CSS into shadow roots from Vite CSS imports.
+ * Browser helpers for referencing CSS files from shadow roots via Vite's
+ * `?url` imports.
  *
- * Vite serves plain `.css` imports as JavaScript modules, so `<link>` hrefs
- * and `@import url()`s inside a shadow root can't point at them directly.
- * These helpers bridge the gap from the import forms Vite does offer
- * (`?inline` strings and `?url` file URLs) to URLs a shadow root can load,
- * while keeping HMR working: an edit to the CSS file re-executes the
- * importing component module, and these helpers make sure that re-execution
- * yields a *new* URL so the browser refetches.
+ * A `?url` import yields a real stylesheet URL — the dev server serves the
+ * file as CSS, and `vite build` emits it as a hashed `.css` asset. That
+ * makes it the right base for `<link>` hrefs and `@import url()`s inside
+ * shadow roots. The one gap is dev HMR: the imported URL string is identical
+ * across module re-executions, so the browser would keep the stale
+ * stylesheet. These helpers close that gap.
  *
  * This module is dependency-free and must stay safe to load in any
  * environment.
- *
- * @example
- * ```ts
- * import cssText from './my-element.css?inline';
- * import {cssBlobUrl} from '@lit-labs/vite-hmr/css.js';
- *
- * // In render():
- * html`<link rel="stylesheet" href="${cssBlobUrl(cssText)}" />`;
- * ```
  */
-
-// One URL per distinct CSS text, even if this module is loaded twice
-// (e.g. via both an optimized and a raw URL).
-const CACHE_KEY = Symbol.for('@lit-labs/vite-hmr#cssUrls');
-
-const getCache = (): Map<string, string> => {
-  const g = globalThis as unknown as Record<
-    symbol,
-    Map<string, string> | undefined
-  >;
-  return (g[CACHE_KEY] ??= new Map());
-};
-
-/**
- * Returns an object URL serving the given CSS text, suitable for a `<link>`
- * href or `@import url()` inside a shadow root.
- *
- * URLs are memoized by content, so calling this in `render()` is fine:
- * unchanged text (re-renders, multiple instances) reuses one URL, while the
- * new text after an HMR update maps to a fresh URL and the browser refetches.
- */
-export const cssBlobUrl = (cssText: string): string => {
-  const cache = getCache();
-  let url = cache.get(cssText);
-  if (url === undefined) {
-    url = URL.createObjectURL(new Blob([cssText], {type: 'text/css'}));
-    cache.set(cssText, url);
-  }
-  return url;
-};
 
 /**
  * Appends a cache-busting query to a `?url`-imported CSS file URL in dev.
  *
- * The URL string a `?url` import yields is identical across HMR
- * re-executions, so the browser would keep the stale stylesheet. Call this
- * at *module scope* (not in `render()`, where every render would refetch)
- * to give each module execution a fresh href.
+ * Call this at *module scope* (not in `render()`, where every render would
+ * refetch): each HMR re-execution then yields a fresh href and the browser
+ * refetches the changed stylesheet.
  *
  * In production builds the URL is a content-hashed asset, so the input is
  * returned unchanged.
@@ -75,6 +35,7 @@ export const cssBlobUrl = (cssText: string): string => {
  * import {devCacheBust} from '@lit-labs/vite-hmr/css.js';
  *
  * const href = devCacheBust(cssUrl); // module scope
+ * html`<link rel="stylesheet" href="${href}" />`;
  * ```
  */
 export const devCacheBust = (url: string): string => {

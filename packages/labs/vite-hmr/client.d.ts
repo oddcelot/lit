@@ -11,7 +11,7 @@
  * `/// <reference types="@lit-labs/vite-hmr/client" />`.
  */
 
-declare module '*.css?blob-url' {
+declare module '*.css?hmr-url' {
   const href: string;
   export default href;
 }

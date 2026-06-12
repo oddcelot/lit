@@ -6,21 +6,20 @@
 
 import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {cssBlobUrl} from '@lit-labs/vite-hmr/css.js';
-import cssContent from './hmr-import-css.css?inline';
+import cssHref from './hmr-import-css.css?hmr-url';
 
 /**
  * Styles loaded via @import inside a <style> element in the shadow root.
  *
- * Vite serves CSS files as JavaScript modules, so an @import url() pointing
- * at a .css URL would receive JS, not CSS. Instead we import the CSS content
- * as a string via the `?inline` query parameter and serve it through
- * `cssBlobUrl`.
+ * The plugin's `?hmr-url` import query yields a real stylesheet URL — the
+ * dev server serves the CSS file directly, and `vite build` emits it as a
+ * hashed `.css` asset — so the @import fetches actual CSS, not Vite's
+ * JS-wrapped module.
  *
- * When the .css file changes, Vite's HMR invalidates the `?inline` module,
- * which propagates to this component module. The module re-executes with the
- * new CSS content, which maps to a fresh object URL, and the component
- * re-renders with the new @import URL.
+ * When the .css file changes, Vite's HMR propagates through the query's
+ * wrapper module to this component module. Re-execution imports a freshly
+ * cache-busted URL and the component re-renders, making the browser refetch
+ * the stylesheet.
  */
 
 @customElement('hmr-import-css')
@@ -30,7 +29,7 @@ export class HmrImportCss extends LitElement {
   override render() {
     return html`
       <style>
-        @import url('${cssBlobUrl(cssContent)}');
+        @import url('${cssHref}');
       </style>
       <h2>@import CSS</h2>
       <div id="imported-box">styled via @import</div>
