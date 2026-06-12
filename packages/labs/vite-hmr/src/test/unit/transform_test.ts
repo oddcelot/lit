@@ -121,7 +121,7 @@ describe('isComponentModule', () => {
 });
 
 describe('litHmr plugin transform filter', () => {
-  const plugin = litHmr();
+  const plugin = litHmr().find((p) => p.name === 'lit-hmr')!;
   const callTransform = (code: string, id: string, ssr?: boolean) => {
     const hook = plugin.transform as (
       code: string,
@@ -157,5 +157,42 @@ describe('litHmr plugin transform filter', () => {
     expect(
       await callTransform(COMPONENT, '/app/index.html?html-proxy&index=0.js')
     ).not.toBeNull();
+  });
+});
+
+describe('litHmr ?blob-url css query', () => {
+  const plugin = litHmr().find((p) => p.name === 'lit-hmr-css-query')!;
+  const fakeCtx = {
+    resolve: async (source: string) => ({id: `/app/src/${source.slice(2)}`}),
+  };
+  const callResolveId = (id: string, importer?: string) =>
+    (
+      plugin.resolveId as unknown as (
+        this: typeof fakeCtx,
+        id: string,
+        importer?: string
+      ) => Promise<string | null>
+    ).call(fakeCtx, id, importer);
+  const callLoad = (id: string) =>
+    (plugin.load as unknown as (id: string) => string | null)(id);
+
+  test('resolves css blob-url imports to a virtual JS id', async () => {
+    expect(await callResolveId('./box.css?blob-url', '/app/src/el.ts')).toBe(
+      '\0lit-hmr:blob-url:/app/src/box.css.js'
+    );
+  });
+
+  test('ignores other css imports', async () => {
+    expect(
+      await callResolveId('./box.css?inline', '/app/src/el.ts')
+    ).toBeNull();
+    expect(await callResolveId('./box.css', '/app/src/el.ts')).toBeNull();
+  });
+
+  test('loads a wrapper importing ?inline through cssBlobUrl', () => {
+    const code = callLoad('\0lit-hmr:blob-url:/app/src/box.css.js')!;
+    expect(code).toContain('"/app/src/box.css?inline"');
+    expect(code).toContain('cssBlobUrl(cssText)');
+    expect(callLoad('/app/src/el.ts')).toBeNull();
   });
 });

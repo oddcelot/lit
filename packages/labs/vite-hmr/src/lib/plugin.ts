@@ -46,15 +46,64 @@ const resolveRuntimeModule = (name: string): string => {
 const JS_FILE_RE = /\.[cm]?[jt]sx?$/;
 
 /**
- * Dev-only Vite plugin providing true HMR for Lit: template-strings
- * interning plus in-place custom element class patching.
+ * `import href from './x.css?blob-url'` — yields a string URL serving the
+ * file's CSS, backed by the memoized `cssBlobUrl` runtime helper, so a
+ * shadow-root `<link>` href or `@import url()` can use it directly and HMR
+ * yields a fresh URL per re-execution.
  */
-export const litHmr = (options: LitHmrOptions = {}): Plugin => {
+const BLOB_URL_QUERY_RE = /^([^?]+\.css)\?(?:[^&]*&)*blob-url(?:&.*)?$/;
+const BLOB_URL_PREFIX = '\0lit-hmr:blob-url:';
+// The virtual id must not end in `.css`, or Vite's CSS plugins (which match
+// the id's extension regardless of `\0`) would compile the wrapper as CSS.
+const BLOB_URL_SUFFIX = '.js';
+
+/**
+ * Import-query support, served in dev and build alike (source code using
+ * `?blob-url` must keep working under `vite build`, where the HMR plugin
+ * doesn't apply). Exported for the baseline e2e run, which needs the query
+ * working without the HMR plugin.
+ */
+export const litCssQueries = (): Plugin => ({
+  name: 'lit-hmr-css-query',
+  // Vite's core resolver claims `./x.css?blob-url` for the CSS pipeline
+  // before normal plugins get a look, so resolve ahead of it.
+  enforce: 'pre',
+  async resolveId(id, importer) {
+    const match = BLOB_URL_QUERY_RE.exec(id);
+    if (match === null) {
+      return null;
+    }
+    const resolved = await this.resolve(match[1], importer);
+    if (resolved === null) {
+      return null;
+    }
+    return BLOB_URL_PREFIX + resolved.id + BLOB_URL_SUFFIX;
+  },
+  load(id) {
+    if (!id.startsWith(BLOB_URL_PREFIX)) {
+      return null;
+    }
+    const file = id.slice(BLOB_URL_PREFIX.length, -BLOB_URL_SUFFIX.length);
+    const helperPath = resolveRuntimeModule('css');
+    return (
+      `import cssText from ${JSON.stringify(`${file}?inline`)};\n` +
+      `import {cssBlobUrl} from ${JSON.stringify(helperPath)};\n` +
+      `export default cssBlobUrl(cssText);\n`
+    );
+  },
+});
+
+/**
+ * Vite plugin set providing true HMR for Lit: template-strings interning
+ * plus in-place custom element class patching (dev-only), and the
+ * `?blob-url` CSS import query (dev and build).
+ */
+export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
   const runtimeOptions = {
     reconnect: options.reconnect ?? false,
     onIncompatible: options.onIncompatible ?? 'reload',
   };
-  return {
+  const hmr: Plugin = {
     name: 'lit-hmr',
     apply: 'serve',
     // The injected runtime imports are invisible to the dep scanner. The
@@ -125,4 +174,5 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin => {
       return transformLitModule(code);
     },
   };
+  return [litCssQueries(), hmr];
 };

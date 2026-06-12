@@ -11,6 +11,7 @@ import {fileURLToPath} from 'node:url';
 import {createServer, type ViteDevServer} from 'vite';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {litHmr, type LitHmrOptions} from '../../index.js';
+import {litCssQueries} from '../../lib/plugin.js';
 
 const PACKAGE_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 const PLAYGROUND_DIR = path.join(PACKAGE_ROOT, 'playground');
@@ -64,7 +65,13 @@ export const startFixture = async (
     configFile: false,
     logLevel: 'silent',
     server: {host: '127.0.0.1', port: 0},
-    plugins: options.plugin === false ? [] : [litHmr(options.plugin ?? {})],
+    // Baseline runs keep the CSS import-query plugin (the playground source
+    // can't boot without it) but drop the HMR plugin — the query provides no
+    // HMR boundaries, so the baseline's full-reload claim is unaffected.
+    plugins:
+      options.plugin === false
+        ? [litCssQueries()]
+        : [litHmr(options.plugin ?? {})],
   });
   await server.listen();
   const address = server.httpServer!.address();

@@ -11,7 +11,8 @@
   "files": [
     "/lib/",
     "!/lib/test/",
-    "/index.{d.ts,d.ts.map,js,js.map}"
+    "/index.{d.ts,d.ts.map,js,js.map}",
+    "/client.d.ts"
   ],
   "exports": {
     ".": {
@@ -21,6 +22,9 @@
     "./css.js": {
       "types": "./lib/runtime/css.d.ts",
       "default": "./lib/runtime/css.js"
+    },
+    "./client": {
+      "types": "./client.d.ts"
     }
   },
   "repository": {
