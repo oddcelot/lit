@@ -83,6 +83,16 @@ Define the context key in its own module (and prefer string keys —
 `createContext('my-context')` is identity-by-value, a `Symbol()` key is
 not), the same way you'd isolate any shared module-level state.
 
+## Tasks
+
+`@lit/task` works without special handling: the Task controller and its
+completed value are instance state, which patches preserve. A hot patch
+re-renders without re-fetching (the update re-evaluates `args()`, which are
+shallow-equal, so the task stays `COMPLETE`), and args-driven re-runs keep
+working afterwards. One caveat: the task _function_ is captured by the
+controller at construction, so editing its body only affects future
+instances — reload to swap fetch logic on live ones.
+
 ## Limitations
 
 - **Standard `accessor` decorators**: reactive properties declared with
