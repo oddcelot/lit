@@ -426,6 +426,13 @@ packages/labs/virtualizer/events.d.ts*
 packages/labs/virtualizer/events.js
 packages/labs/virtualizer/events.js.map
 
+packages/labs/vite-hmr/index.*
+packages/labs/vite-hmr/lib/
+packages/labs/vite-hmr/.e2e-tmp/
+packages/labs/vite-hmr/.vite/
+packages/labs/vite-hmr/**/*.tsbuildinfo
+packages/labs/vite-hmr/node_modules/
+
 packages/labs/vscode-extension/lib/
 packages/labs/vscode-extension/test/
 packages/labs/vscode-extension/.vscode-test/
