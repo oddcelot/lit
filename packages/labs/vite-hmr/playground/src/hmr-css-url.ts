@@ -6,6 +6,7 @@
 
 import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
+import {devCacheBust} from '@lit-labs/vite-hmr/css.js';
 import cssUrl from './hmr-css-url.css?url';
 
 /**
@@ -18,14 +19,13 @@ import cssUrl from './hmr-css-url.css?url';
  * When the .css file changes, Vite invalidates the `?url` module and the
  * update propagates to this component module, which re-executes and
  * re-renders. But the imported URL string is the same on every execution,
- * so without help the browser would keep the stale stylesheet. The `?t=`
- * timestamp below gives each module execution a fresh href, forcing a
+ * so without help the browser would keep the stale stylesheet —
+ * `devCacheBust` gives each module execution a fresh href, forcing a
  * refetch.
  */
 
-// Cache-bust per module execution (dev only — at build time the URL is a
-// content-hashed asset, so busting is unnecessary).
-const href = import.meta.hot ? `${cssUrl}?t=${Date.now()}` : cssUrl;
+// Module scope: one fresh href per module execution, not per render.
+const href = devCacheBust(cssUrl);
 
 @customElement('hmr-css-url')
 export class HmrCssUrl extends LitElement {

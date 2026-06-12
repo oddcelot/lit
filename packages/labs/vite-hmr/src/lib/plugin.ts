@@ -68,6 +68,12 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin => {
       if (id.startsWith(VIRTUAL_PREFIX)) {
         return id;
       }
+      // Resolve the browser CSS helpers to the copy shipped next to this
+      // plugin, so they work even when the package isn't reachable through
+      // node resolution from the served root (and stay out of prebundling).
+      if (id === '@lit-labs/vite-hmr/css.js') {
+        return resolveRuntimeModule('css');
+      }
       return null;
     },
     load(id) {

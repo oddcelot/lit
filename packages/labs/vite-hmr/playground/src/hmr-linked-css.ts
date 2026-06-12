@@ -6,6 +6,7 @@
 
 import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
+import {cssBlobUrl} from '@lit-labs/vite-hmr/css.js';
 import cssContent from './hmr-linked-css.css?inline';
 
 /**
@@ -13,17 +14,13 @@ import cssContent from './hmr-linked-css.css?inline';
  *
  * Vite serves CSS files as JavaScript modules, so we can't point a <link>
  * href directly at a .css URL. Instead we import the CSS content as a string
- * via the `?inline` query parameter and create an object URL from it.
+ * via the `?inline` query parameter and serve it through `cssBlobUrl`.
  *
  * When the .css file changes, Vite's HMR invalidates the `?inline` module,
  * which propagates to this component module (self-accepting via the Lit HMR
- * plugin). The module re-executes with the new CSS content, the object URL
- * refreshes, and the component re-renders with the updated <link> href.
+ * plugin). The module re-executes with the new CSS content, which maps to a
+ * fresh object URL, and the component re-renders with the new <link> href.
  */
-
-// Re-created on each HMR re-execution, so the <link> href changes and the
-// browser fetches the new CSS.
-const cssUrl = URL.createObjectURL(new Blob([cssContent], {type: 'text/css'}));
 
 @customElement('hmr-linked-css')
 export class HmrLinkedCss extends LitElement {
@@ -31,7 +28,7 @@ export class HmrLinkedCss extends LitElement {
 
   override render() {
     return html`
-      <link rel="stylesheet" href="${cssUrl}" />
+      <link rel="stylesheet" href="${cssBlobUrl(cssContent)}" />
       <h2>Linked CSS</h2>
       <div id="linked-box">styled via &lt;link&gt;</div>
       <span class="badge" id="badge">renders: 0</span>
