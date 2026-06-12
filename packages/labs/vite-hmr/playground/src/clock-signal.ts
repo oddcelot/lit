@@ -19,3 +19,40 @@ const interval = setInterval(() => {
 }, 1000);
 
 import.meta.hot?.dispose(() => clearInterval(interval));
+
+/**
+ * Shared timezone signal — both the analog and the digital clock follow it.
+ */
+export const timeZone = signal(
+  Intl.DateTimeFormat().resolvedOptions().timeZone
+);
+
+/** Every IANA timezone the runtime knows about (picker options). */
+export const TIME_ZONES: readonly string[] = Intl.supportedValuesOf('timeZone');
+
+const partFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Hours/minutes/seconds of `date` in `tz`, via Intl (formatters cached per
+ * timezone — creating one per tick would be wasteful).
+ */
+export const getTimeParts = (
+  date: Date,
+  tz: string
+): {hours: number; minutes: number; seconds: number} => {
+  let formatter = partFormatters.get(tz);
+  if (formatter === undefined) {
+    formatter = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hourCycle: 'h23',
+      timeZone: tz,
+    });
+    partFormatters.set(tz, formatter);
+  }
+  const parts = formatter.formatToParts(date);
+  const num = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return {hours: num('hour'), minutes: num('minute'), seconds: num('second')};
+};

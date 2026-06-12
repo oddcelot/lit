@@ -7,7 +7,7 @@
 import {LitElement, css} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {SignalWatcher, html, svg} from '@lit-labs/signals';
-import {now} from './clock-signal.js';
+import {getTimeParts, now, timeZone} from './clock-signal.js';
 
 /**
  * An SVG clock driven by the shared `now` signal. The face and the hands
@@ -81,9 +81,11 @@ export class HmrClock extends SignalWatcher(LitElement) {
   }
 
   private renderHands(time: Date) {
-    const seconds = time.getSeconds();
-    const minutes = time.getMinutes() + seconds / 60;
-    const hours = (time.getHours() % 12) + minutes / 60;
+    // Follows the shared timezone signal (see the digital clock's picker).
+    const parts = getTimeParts(time, timeZone.get());
+    const seconds = parts.seconds;
+    const minutes = parts.minutes + seconds / 60;
+    const hours = (parts.hours % 12) + minutes / 60;
     return svg`
       <line id="hour-hand" part="hour" x1="50" y1="50" x2="50" y2="28"
         transform="rotate(${hours * 30} 50 50)"></line>

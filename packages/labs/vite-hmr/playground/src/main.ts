@@ -12,6 +12,7 @@ import './hmr-probe.js';
 import './hmr-properties.js';
 import './hmr-signals.js';
 import './hmr-clock.js';
+import './hmr-digital-clock.js';
 
 export interface HmrProbeState {
   updates: number;
