@@ -16,6 +16,8 @@ import './hmr-digital-clock.js';
 import './hmr-context.js';
 import './hmr-task.js';
 import './hmr-virtualizer.js';
+import './hmr-linked-css.js';
+import './hmr-import-css.js';
 
 export interface HmrProbeState {
   updates: number;
