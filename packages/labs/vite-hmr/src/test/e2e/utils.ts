@@ -44,10 +44,20 @@ export const startFixture = async (
     '.e2e-tmp',
     `pg-${randomUUID().slice(0, 8)}`
   );
+  // The e2e server uses inline config; the manifest files exist only for
+  // standalone (StackBlitz/bolt.new) runs and would skew dep resolution.
+  const FIXTURE_EXCLUDE = new Set([
+    'package.json',
+    'package-lock.json',
+    '.npmrc',
+    'node_modules',
+  ]);
   await cp(PLAYGROUND_DIR, root, {
     recursive: true,
-    // The e2e server uses inline config.
-    filter: (src) => !path.basename(src).startsWith('vite.config'),
+    filter: (src) => {
+      const base = path.basename(src);
+      return !base.startsWith('vite.config') && !FIXTURE_EXCLUDE.has(base);
+    },
   });
   const server = await createServer({
     root,

@@ -127,23 +127,19 @@ content reflow without moving the scroller.
 - The Rolldown full-bundle dev mode is unsupported; the plugin targets the
   standard Vite dev server pipeline.
 
-## Demo
-
-[Open the demo on bolt.new](https://bolt.new/github.com/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/demo)
-— the Vite dev server runs in a WebContainer, so HMR works live in the
-browser. Run `npm run dev` in the Bolt terminal (imports don't
-auto-start), then: click the counter, type in the input, edit
-`src/*.ts`, and watch state, focus, and DOM identity survive the
-patch.
-
-The demo in [`demo/`](./demo/) is a self-contained Vite project. It
-installs the interim npm publish of this plugin
-(`@oddsquad/vite-plugin-lit`); switch the dependency and import to
-`@lit-labs/vite-hmr` once that is published.
-
 ## Playground
 
-A manually inspectable fixture app (also the source for the e2e fixtures):
+A manually inspectable fixture app (also the source for the e2e
+fixtures). The dev server runs in a WebContainer, so HMR works live in
+the browser — no local checkout needed:
+
+- [Open on StackBlitz](https://stackblitz.com/fork/github/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/playground?file=src%2Fhmr-counter.ts)
+  (starts the dev server automatically)
+- [Open on bolt.new](https://bolt.new/github.com/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/playground)
+  (run `npm run dev` in the Bolt terminal — URL imports don't
+  auto-start)
+
+Or locally, inside the monorepo:
 
 ```sh
 cd packages/labs/vite-hmr
@@ -153,6 +149,12 @@ npm run dev   # http://localhost:5179
 Edit the templates, styles, and labels in `playground/src/*.ts` and watch
 counts, focus, and DOM identity survive. The page HUD counts HMR updates;
 every component shows a `renders: n` badge.
+
+Standalone runs install the interim npm publish of this plugin
+(`@oddsquad/vite-plugin-lit`) on Vite 7 — Vite 8's rolldown wasm binding
+currently crashes in WebContainers
+([webcontainer-core#2104](https://github.com/stackblitz/webcontainer-core/issues/2104)).
+Inside the monorepo the playground uses the local build on Vite 8.
 
 ## Tests
 
