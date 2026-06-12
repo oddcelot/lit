@@ -129,10 +129,12 @@ content reflow without moving the scroller.
 
 ## Demo
 
-[Open the demo on StackBlitz](https://stackblitz.com/github/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/demo?file=src%2Fdemo-counter.ts)
+[Open the demo on bolt.new](https://bolt.new/github.com/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/demo)
 — the Vite dev server runs in a WebContainer, so HMR works live in the
-browser: click the counter, type in the input, then edit `src/*.ts` and
-watch state, focus, and DOM identity survive the patch.
+browser. Run `npm run dev` in the Bolt terminal (imports don't
+auto-start), then: click the counter, type in the input, edit
+`src/*.ts`, and watch state, focus, and DOM identity survive the
+patch.
 
 The demo in [`demo/`](./demo/) is a self-contained Vite project. It
 installs the interim npm publish of this plugin
