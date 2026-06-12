@@ -20,6 +20,10 @@ import rawCss from './hmr-raw-css.css?raw';
  * which propagates to this component module. The module re-executes with
  * the new text and the Lit HMR plugin hot-swaps the class's static styles
  * on live instances.
+ *
+ * Caveat: `?raw` returns the file text verbatim, bypassing Vite's CSS
+ * pipeline — no Lightning CSS/PostCSS processing applies (unlike the
+ * `?hmr-url` demos), so stick to natively supported syntax here.
  */
 
 @customElement('hmr-raw-css')

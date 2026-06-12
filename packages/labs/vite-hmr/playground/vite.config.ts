@@ -22,6 +22,26 @@ export default defineConfig(async () => {
       port: 5179,
       strictPort: true,
     },
+    css: {
+      // Process all CSS with Lightning CSS instead of PostCSS — applies to
+      // dev-served .css files and built assets alike. The conservative
+      // targets force visible downleveling (nesting flattened, oklch()
+      // resolved to fallbacks) in the demo stylesheets. Note that `?raw`
+      // imports bypass the CSS pipeline and stay unprocessed.
+      transformer: 'lightningcss' as const,
+      lightningcss: {
+        // major << 16 | minor << 8 (Lightning CSS version encoding).
+        targets: {chrome: 100 << 16, safari: 15 << 16},
+      },
+    },
+    build: {
+      // The cssMinify pass strips the color fallbacks the transform just
+      // generated: under Vite 8 (monorepo) Lightning CSS minifies without
+      // receiving css.lightningcss.targets, and under Vite 7 (standalone)
+      // the esbuild default merges duplicate declarations. Skip
+      // minification — these are demo stylesheets meant to be read anyway.
+      cssMinify: false,
+    },
     plugins: [litHmr()],
   };
 });
