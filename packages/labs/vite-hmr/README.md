@@ -54,6 +54,20 @@ builds are untouched.
 | `reconnect`      | `boolean`            | `false`    | Cycle `disconnectedCallback()`/`connectedCallback()` on live instances after a hot patch. Interning makes this mostly unnecessary. |
 | `onIncompatible` | `'reload' \| 'warn'` | `'reload'` | What to do when a component can't be hot-patched in place: automatically reload the page, or only warn in the console.             |
 
+## Signals
+
+`@lit-labs/signals` is supported: its `html`/`svg` tags are interned just
+like the core ones, the `SignalWatcher` mixin's regenerated class chain is
+re-parented during a patch, and both per-instance signals and signals
+imported from other modules keep their value and reactivity across an
+update.
+
+One caveat applies to all module-level state, not just signals: a
+module-level `signal()` declared **inside an edited component module** is
+re-created (with its initial value) when that module re-executes. Keep
+shared signals in their own non-component module and import them — that
+module never re-executes, so the signal object survives.
+
 ## Limitations
 
 - **Standard `accessor` decorators**: reactive properties declared with

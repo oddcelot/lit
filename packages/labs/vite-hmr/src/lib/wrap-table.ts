@@ -40,4 +40,9 @@ export const WRAP_TABLE: ReadonlyMap<string, readonly WrappedTag[]> = new Map([
   ['lit-element/lit-element.js', tags('html', 'svg', 'mathml', 'css')],
   ['@lit/reactive-element', tags('css')],
   ['@lit/reactive-element/css-tag.js', tags('css')],
+  // The signals tags wrap the user's values but pass the strings array
+  // straight through to lit-html's core tags, so they intern in the same
+  // namespaces as plain html/svg (content-equal templates share a cache
+  // entry either way).
+  ['@lit-labs/signals', tags('html', 'svg')],
 ]);

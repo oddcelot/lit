@@ -60,6 +60,7 @@ describe('transformLitModule', () => {
       'lit-element/lit-element.js',
       '@lit/reactive-element',
       '@lit/reactive-element/css-tag.js',
+      '@lit-labs/signals',
     ]) {
       const result = await transformLitModule(
         `import {html} from '${spec}';\n`

@@ -9,6 +9,8 @@ import './hmr-siblings.js';
 import './hmr-parent.js';
 import './hmr-styled.js';
 import './hmr-probe.js';
+import './hmr-properties.js';
+import './hmr-signals.js';
 
 export interface HmrProbeState {
   updates: number;
