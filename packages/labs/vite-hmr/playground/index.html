@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@lit-labs/vite-hmr playground</title>
+    <link rel="icon" href="data:," />
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 1rem;
+      }
+      #hud {
+        position: sticky;
+        top: 0;
+        padding: 0.5rem 1rem;
+        background: #1a1a2e;
+        color: #fff;
+        border-radius: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      main > * {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="hud">HMR updates: <span id="hmr-updates">0</span></div>
+    <main>
+      <hmr-counter></hmr-counter>
+      <hmr-siblings></hmr-siblings>
+      <hmr-parent></hmr-parent>
+      <hmr-styled></hmr-styled>
+      <hmr-probe></hmr-probe>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

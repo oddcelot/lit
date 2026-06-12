@@ -1,0 +1,34 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+import './hmr-counter.js';
+import './hmr-siblings.js';
+import './hmr-parent.js';
+import './hmr-styled.js';
+import './hmr-probe.js';
+
+export interface HmrProbeState {
+  updates: number;
+  /** Pinned DOM nodes for identity assertions across HMR updates. */
+  keep: Map<string, unknown>;
+}
+
+declare global {
+  interface Window {
+    __hmr: HmrProbeState;
+  }
+}
+
+window.__hmr = {updates: 0, keep: new Map()};
+
+if (import.meta.hot) {
+  import.meta.hot.on('vite:afterUpdate', () => {
+    window.__hmr.updates++;
+    document.getElementById('hmr-updates')!.textContent = String(
+      window.__hmr.updates
+    );
+  });
+}
