@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {LitElement, css, html} from 'lit';
+import {LitElement, css, html, nothing} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
 import './hmr-modal-child.js';
 
@@ -56,10 +56,21 @@ export class HmrModal extends LitElement {
     .close-btn:hover {
       background: var(--card-border, #eee);
     }
+    .discard-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
   `;
 
   @state()
   private open = false;
+
+  @state()
+  private discardChild = false;
 
   private renders = 0;
 
@@ -78,7 +89,17 @@ export class HmrModal extends LitElement {
             ✕
           </button>
         </div>
-        <hmr-modal-child id="child"></hmr-modal-child>
+        ${this.discardChild && !this.open
+          ? nothing
+          : html` <hmr-modal-child id="child"></hmr-modal-child> `}
+        <label class="discard-toggle">
+          <input
+            type="checkbox"
+            ?checked=${this.discardChild}
+            @change=${this.toggleDiscard}
+          />
+          Discard child on close
+        </label>
       </dialog>
     `;
   }
@@ -106,5 +127,9 @@ export class HmrModal extends LitElement {
 
   private closeDialog() {
     this.open = false;
+  }
+
+  private toggleDiscard(e: Event) {
+    this.discardChild = (e.target as HTMLInputElement).checked;
   }
 }
