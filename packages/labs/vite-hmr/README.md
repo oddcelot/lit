@@ -54,6 +54,60 @@ builds are untouched.
 | `reconnect`      | `boolean`            | `false`    | Cycle `disconnectedCallback()`/`connectedCallback()` on live instances after a hot patch. Interning makes this mostly unnecessary. |
 | `onIncompatible` | `'reload' \| 'warn'` | `'reload'` | What to do when a component can't be hot-patched in place: automatically reload the page, or only warn in the console.             |
 
+## Stylesheets
+
+CSS in shadow roots can be delivered a few ways, with different HMR
+behaviors. The plugin ships helpers under `@lit-labs/vite-hmr/css.js`.
+
+### Shared adopted stylesheet from a `.css` asset
+
+`urlSheet()` builds a single constructed `CSSStyleSheet` from a `?url`-imported
+CSS file, shareable across any number of components via `adoptedStyleSheets`.
+An edit re-fetches and `replaceSync()`s the sheet in place — every adopter
+updates **without re-rendering a component and without a full-page reload**.
+The CSS stays a standalone, pipeline-processed `.css` file in the build output
+(it isn't inlined into the JS bundle); the only cost is a brief flash of
+unstyled content on initial load while the first fetch resolves.
+
+```ts
+// utility-sheet.ts
+import {urlSheet} from '@lit-labs/vite-hmr/css.js';
+import sheetUrl from './utility-sheet.css?url';
+
+const {sheet, onHotUpdate} = urlSheet(sheetUrl);
+export default sheet;
+
+// The accept must live here with the same literal specifier as the import —
+// Vite resolves accepted HMR deps by static analysis, so it can't be hidden
+// inside the helper.
+import.meta.hot?.accept('./utility-sheet.css?url', onHotUpdate);
+```
+
+```ts
+// any component
+import sheet from './utility-sheet.js';
+
+@customElement('my-el')
+export class MyEl extends LitElement {
+  static override styles = [sheet];
+}
+```
+
+### External stylesheet via `<link>`
+
+For a `<link rel="stylesheet">` (or `@import url()`) inside a shadow root, the
+`?hmr-url` import query yields a real stylesheet URL (dev-served file; hashed
+`.css` asset on build). On edit the component re-renders with a freshly
+cache-busted href so the browser refetches — simpler than `urlSheet`, but it
+**does** re-render. `devCacheBust()` is the underlying helper if you import
+`?url` yourself.
+
+### Inlined
+
+`?inline` (processed) or `?raw` (verbatim) hand back the CSS as a string to
+feed `unsafeCSS` or `replaceSync`. No standalone `.css` asset — the text ships
+inside the JS chunk — but no runtime fetch and no FOUC.
+
 ## Signals
 
 `@lit-labs/signals` is supported: its `html`/`svg` tags are interned just
