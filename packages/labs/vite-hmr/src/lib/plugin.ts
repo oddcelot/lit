@@ -280,9 +280,14 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       if (!options.updateIndicator) {
         return;
       }
+      // Boolean `true` means simple mode — just a subtle dot, idle opacity
+      // 0, no count. The object form opts into visible tracking (count +
+      // idle opacity .5).
+      const isSimple = typeof options.updateIndicator === 'boolean';
       const withCount =
-        typeof options.updateIndicator !== 'object' ||
-        options.updateIndicator.count !== false;
+        !isSimple &&
+        (options.updateIndicator as {count?: boolean}).count !== false;
+      const idleOpacity = withCount ? '.5' : '0';
       // Serve the runtime indicator module as an external script so
       // Vite processes it through its transform pipeline and provides
       // `import.meta.hot`. Inline scripts injected by transformIndexHtml
@@ -291,11 +296,10 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       return [
         {
           tag: 'style',
-          // Slide-up pill with green dot (and optional count) that fades
-          // in on animation then fades back out.
+          // Subtle opacity pulse with no transform/scale.
           children:
-            `@keyframes __lhmr_p{0%{opacity:.5;transform:translateY(8px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.15)}25%{transform:translateY(0) scale(1)}80%{opacity:1}100%{opacity:.5;transform:translateY(-4px) scale(.9)}}` +
-            `#__lhmr_d{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:.5}` +
+            `@keyframes __lhmr_p{0%{opacity:${idleOpacity}}15%{opacity:1}80%{opacity:1}100%{opacity:${idleOpacity}}}` +
+            `#__lhmr_d{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:${idleOpacity}}` +
             `#__lhmr_d.__lhmr_a{animation:__lhmr_p 2.5s ease-out forwards}` +
             `.__lhmr_dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}`,
           injectTo: 'head-prepend',
