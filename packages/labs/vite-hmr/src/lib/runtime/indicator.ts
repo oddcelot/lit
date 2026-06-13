@@ -11,8 +11,8 @@
  * `transformIndexHtml` hook — this module only drives the animation.
  */
 
-const dot = document.getElementById('__lhmr_d')!;
-const count: HTMLElement | null = document.querySelector('.__lhmr_c');
+const dot = document.getElementById('lhmr-indicator')!;
+const count: HTMLElement | null = document.querySelector('.lhmr-count');
 let n = 0;
 
 (import.meta as {hot?: {on: (event: string, cb: () => void) => void}}).hot?.on(
@@ -21,8 +21,8 @@ let n = 0;
     if (count !== null) {
       count.textContent = String(++n);
     }
-    dot.classList.remove('__lhmr_a');
+    dot.classList.remove('lhmr-active');
     void dot.offsetWidth;
-    dot.classList.add('__lhmr_a');
+    dot.classList.add('lhmr-active');
   }
 );

@@ -307,8 +307,8 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       const idleOpacity = withCount ? '.5' : '0';
       // Round wrapper without count; pill wrapper with count.
       const containerCss = withCount
-        ? `#__lhmr_d{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:${idleOpacity}}`
-        : `#__lhmr_d{position:fixed;bottom:16px;right:16px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(26,26,46,.85);z-index:2147483647;pointer-events:none;opacity:${idleOpacity}}`;
+        ? /*css*/ `#lhmr-indicator{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:${idleOpacity}}`
+        : /*css*/ `#lhmr-indicator{position:fixed;bottom:16px;right:16px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(26,26,46,.85);z-index:2147483647;pointer-events:none;opacity:${idleOpacity}}`;
       // Serve the runtime indicator module as an external script so
       // Vite processes it through its transform pipeline and provides
       // `import.meta.hot`. Inline scripts injected by transformIndexHtml
@@ -317,20 +317,19 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       return [
         {
           tag: 'style',
-          // Subtle opacity pulse with no transform/scale.
           children:
-            `@keyframes __lhmr_p{0%{opacity:${idleOpacity}}15%{opacity:1}80%{opacity:1}100%{opacity:${idleOpacity}}}` +
+            /*css*/ `@keyframes lhmr-pulse{0%{opacity:${idleOpacity}}15%{opacity:1}80%{opacity:1}100%{opacity:${idleOpacity}}}` +
             containerCss +
-            `#__lhmr_d.__lhmr_a{animation:__lhmr_p 2.5s ease-out forwards}` +
-            `.__lhmr_dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}`,
+            /*css*/ `#lhmr-indicator.lhmr-active{animation:lhmr-pulse 2.5s ease-out forwards}` +
+            /*css*/ `.lhmr-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}`,
           injectTo: 'head-prepend',
         },
         {
           tag: 'div',
-          attrs: {id: '__lhmr_d'},
+          attrs: {id: 'lhmr-indicator'},
           children:
-            `<span class="__lhmr_dot"></span>` +
-            (withCount ? `<span class="__lhmr_c">0</span>` : ``),
+            `<span class="lhmr-dot"></span>` +
+            (withCount ? `<span class="lhmr-count">0</span>` : ``),
           injectTo: 'body',
         },
         {

@@ -56,6 +56,6 @@ export default defineConfig(async () => {
         },
       },
     },
-    plugins: [litHmr({updateIndicator: {count: true}})],
+    plugins: [litHmr({updateIndicator: true})],
   };
 });

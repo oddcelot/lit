@@ -78,7 +78,7 @@ export class HmrModal extends LitElement {
     return html`
       <div>
         <button class="open-btn" id="open-btn" @click=${this.openDialog}>
-          Open modal
+          Open modals
         </button>
         <span class="badge" id="badge">renders: 0</span>
       </div>
