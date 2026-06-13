@@ -27,6 +27,13 @@ export interface LitHmrOptions {
    * standard `accessor` decorators). Defaults to `'reload'`.
    */
   onIncompatible?: 'reload' | 'warn';
+
+  /**
+   * Inject a small pulsing green dot in the bottom-right corner of the
+   * host page that briefly animates on each HMR update. Provides at-a-glance
+   * visual feedback without looking at the console. Defaults to `false`.
+   */
+  updateIndicator?: boolean;
 }
 
 /**
@@ -261,6 +268,29 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
         return null;
       }
       return transformLitModule(code);
+    },
+    transformIndexHtml() {
+      if (!options.updateIndicator) {
+        return;
+      }
+      return [
+        {
+          tag: 'style',
+          children: `@keyframes __lhmr_p{0%{transform:scale(1);opacity:.3}20%{transform:scale(2);opacity:1}100%{transform:scale(1);opacity:.2}}#__lhmr_d{position:fixed;bottom:16px;right:16px;width:12px;height:12px;border-radius:50%;background:#22c55e;z-index:2147483647;pointer-events:none;opacity:.2}#__lhmr_d.__lhmr_a{animation:__lhmr_p 2s ease-out forwards}`,
+          injectTo: 'head-prepend',
+        },
+        {
+          tag: 'div',
+          attrs: {id: '__lhmr_d'},
+          injectTo: 'body',
+        },
+        {
+          tag: 'script',
+          attrs: {type: 'module'},
+          children: `const d=document.getElementById('__lhmr_d');import.meta.hot?.on('vite:afterUpdate',()=>{d.classList.remove('__lhmr_a');void d.offsetWidth;d.classList.add('__lhmr_a')});`,
+          injectTo: 'body',
+        },
+      ];
     },
   };
   return [litCssQueries(), litCssLiterals(), hmr];
