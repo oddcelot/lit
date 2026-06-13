@@ -16,6 +16,14 @@ import {WRAP_TABLE} from './wrap-table.js';
  */
 export interface LitHmrOptions {
   /**
+   * Enable in-place HMR for Lit component classes. When `false`, the
+   * plugin skips all HMR transforms and runtime injection — useful when
+   * you want the `updateIndicator` feedback without the hot-patching.
+   * Defaults to `true`.
+   */
+  hmr?: boolean;
+
+  /**
    * Cycle `disconnectedCallback()`/`connectedCallback()` on live instances
    * after a hot patch. Interning makes this mostly unnecessary, so it's
    * opt-in. Defaults to `false`.
@@ -33,8 +41,9 @@ export interface LitHmrOptions {
    * page that briefly animates on each HMR update. Provides at-a-glance
    * visual feedback without looking at the console.
    *
-   * - `true` — enabled with update count shown.
-   * - `{ count: false }` — enabled without count (just the dot).
+   * - `true` — simple dot (idle opacity 0, no count).
+   * - `{ count: true }` — pill with count (idle opacity 0.5).
+   * - `{ count: false }` — pill without count (idle opacity 0).
    * - `false` or omitted — disabled. Defaults to `false`.
    */
   updateIndicator?: boolean | {count?: boolean};
@@ -199,6 +208,7 @@ const litCssLiterals = (): Plugin => {
  * tagged template literals when `css.transformer` is `'lightningcss'`.
  */
 export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
+  const enableHmr = options.hmr ?? true;
   const runtimeOptions = {
     reconnect: options.reconnect ?? false,
     onIncompatible: options.onIncompatible ?? 'reload',
@@ -206,30 +216,34 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
   const hmr: Plugin = {
     name: 'lit-hmr',
     apply: 'serve',
-    // The injected runtime imports are invisible to the dep scanner. The
-    // lit family stays prebundle-eligible on purpose: the wrapper modules'
-    // bare imports then resolve to the same URL every other importer gets —
-    // single lit instance, single template cache.
-    config: () => ({
-      optimizeDeps: {exclude: ['@lit-labs/vite-hmr']},
-    }),
-    resolveId(id) {
-      if (id.startsWith(VIRTUAL_PREFIX)) {
-        return id;
+    config: () => {
+      if (!enableHmr) {
+        return;
       }
-      // Resolve the browser CSS helpers to the copy shipped next to this
-      // plugin, so they work even when the package isn't reachable through
-      // node resolution from the served root (and stay out of prebundling).
+      // The injected runtime imports are invisible to the dep scanner. The
+      // lit family stays prebundle-eligible on purpose: the wrapper modules'
+      // bare imports then resolve to the same URL every other importer gets —
+      // single lit instance, single template cache.
+      return {optimizeDeps: {exclude: ['@lit-labs/vite-hmr']}};
+    },
+    resolveId(id) {
+      // Resolve the browser CSS helpers and indicator runtime to the copy
+      // shipped next to this plugin, so they work even when the package
+      // isn't reachable through node resolution from the served root (and
+      // stay out of prebundling).
       if (id === '@lit-labs/vite-hmr/css.js') {
         return resolveRuntimeModule('css');
       }
       if (id === '@lit-labs/vite-hmr/indicator.js') {
         return resolveRuntimeModule('indicator');
       }
+      if (enableHmr && id.startsWith(VIRTUAL_PREFIX)) {
+        return id;
+      }
       return null;
     },
     load(id) {
-      if (!id.startsWith(VIRTUAL_PREFIX)) {
+      if (!enableHmr || !id.startsWith(VIRTUAL_PREFIX)) {
         return null;
       }
       if (id === INSTALL_ID) {
@@ -263,6 +277,9 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       return lines.join('\n') + '\n';
     },
     async transform(code, id, transformOptions) {
+      if (!enableHmr) {
+        return null;
+      }
       if (transformOptions?.ssr) {
         return null;
       }
