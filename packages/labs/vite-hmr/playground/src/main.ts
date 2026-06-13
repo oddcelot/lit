@@ -24,6 +24,7 @@ import './hmr-shared-css-a.js';
 import './hmr-shared-css-b.js';
 import './hmr-utility-btn.js';
 import './hmr-utility-badge.js';
+import './hmr-modal.js';
 
 export interface HmrProbeState {
   updates: number;
