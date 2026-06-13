@@ -321,12 +321,14 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
             `<template shadowrootmode="open">` +
             `<style>` +
             `@keyframes pulse{0%{opacity:${idleOpacity}}15%{opacity:1}80%{opacity:1}100%{opacity:${idleOpacity}}}` +
-            `:host{position:fixed;inset-block-end:var(--lit-devtools-indicator-block-end,16px);inset-inline-end:var(--lit-devtools-indicator-inline-end,16px);z-index:2147483647;pointer-events:none;opacity:${idleOpacity};${containerRules}}` +
-            `:host(.active){animation:pulse 2.5s ease-out forwards}` +
+            `:host{position:fixed;inset:0;display:grid;z-index:2147483647;pointer-events:none}` +
+            `#container{place-self:var(--lit-devtools-indicator-align,end end);opacity:${idleOpacity};${containerRules}}` +
+            `#container.active{animation:pulse 2.5s ease-out forwards}` +
             `.dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}` +
             `</style>` +
-            `<span class="dot"></span>` +
+            `<div id="container"><span class="dot"></span>` +
             (withCount ? `<span class="count">0</span>` : ``) +
+            `</div>` +
             `</template>`,
           injectTo: 'body',
         },

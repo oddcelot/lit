@@ -17,6 +17,7 @@
 class LitDevtoolsIndicator extends HTMLElement {
   #initialized = false;
   #count = 0;
+  #container: HTMLElement | null = null;
   #countEl: HTMLElement | null = null;
 
   connectedCallback() {
@@ -24,6 +25,7 @@ class LitDevtoolsIndicator extends HTMLElement {
     this.#initialized = true;
 
     if (this.shadowRoot) {
+      this.#container = this.shadowRoot.getElementById('container');
       this.#countEl = this.shadowRoot.querySelector('.count');
     }
 
@@ -33,9 +35,11 @@ class LitDevtoolsIndicator extends HTMLElement {
       if (this.#countEl !== null) {
         this.#countEl.textContent = String(++this.#count);
       }
-      this.classList.remove('active');
-      void this.offsetWidth;
-      this.classList.add('active');
+      if (this.#container !== null) {
+        this.#container.classList.remove('active');
+        void this.#container.offsetWidth;
+        this.#container.classList.add('active');
+      }
     });
   }
 }
