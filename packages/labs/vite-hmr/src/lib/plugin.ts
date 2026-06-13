@@ -223,6 +223,9 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       if (id === '@lit-labs/vite-hmr/css.js') {
         return resolveRuntimeModule('css');
       }
+      if (id === '@lit-labs/vite-hmr/indicator.js') {
+        return resolveRuntimeModule('indicator');
+      }
       return null;
     },
     load(id) {
@@ -280,14 +283,19 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       const withCount =
         typeof options.updateIndicator !== 'object' ||
         options.updateIndicator.count !== false;
+      // Serve the runtime indicator module as an external script so
+      // Vite processes it through its transform pipeline and provides
+      // `import.meta.hot`. Inline scripts injected by transformIndexHtml
+      // don't get that transform.
+      const indicatorUrl = `/@fs/` + resolveRuntimeModule('indicator');
       return [
         {
           tag: 'style',
           // Slide-up pill with green dot (and optional count) that fades
           // in on animation then fades back out.
           children:
-            `@keyframes __lhmr_p{0%{opacity:0;transform:translateY(8px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.15)}25%{transform:translateY(0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-4px) scale(.9)}}` +
-            `#__lhmr_d{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:0}` +
+            `@keyframes __lhmr_p{0%{opacity:.5;transform:translateY(8px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.15)}25%{transform:translateY(0) scale(1)}80%{opacity:1}100%{opacity:.5;transform:translateY(-4px) scale(.9)}}` +
+            `#__lhmr_d{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:.5}` +
             `#__lhmr_d.__lhmr_a{animation:__lhmr_p 2.5s ease-out forwards}` +
             `.__lhmr_dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}`,
           injectTo: 'head-prepend',
@@ -302,15 +310,7 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
         },
         {
           tag: 'script',
-          attrs: {type: 'module'},
-          children:
-            `const d=document.getElementById('__lhmr_d');` +
-            (withCount
-              ? `const c=document.querySelector('.__lhmr_c');let n=0;`
-              : ``) +
-            `import.meta.hot?.on('vite:afterUpdate',()=>{` +
-            (withCount ? `c.textContent=++n;` : ``) +
-            `d.classList.remove('__lhmr_a');void d.offsetWidth;d.classList.add('__lhmr_a')});`,
+          attrs: {type: 'module', src: indicatorUrl},
           injectTo: 'body',
         },
       ];
