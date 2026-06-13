@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+import sheetUrl from './hmr-utility-sheet.css?url';
 import rawCss from './hmr-utility-sheet.css?raw';
-import cssHref from './hmr-utility-sheet.css?hmr-url';
 
 /**
  * A single `CSSStyleSheet` adopted by multiple components — simulates a
@@ -14,21 +14,19 @@ import cssHref from './hmr-utility-sheet.css?hmr-url';
  * scale updates, etc.), `replaceSync()` propagates to all consumers
  * without re-rendering any component.
  *
- * The CSS is loaded through Vite's pipeline (via `?hmr-url` + `fetch`),
- * so Lightning CSS transforms apply. The `?raw` import provides a sync
+ * The CSS is loaded through Vite's pipeline (via `?url` + `fetch`), so
+ * Lightning CSS transforms apply. The `?raw` import provides a sync
  * initial value to avoid FOUC; the pipeline-processed version replaces
  * it once fetched.
  */
 const sheet = new CSSStyleSheet();
-let currentRaw = rawCss;
-sheet.replaceSync(currentRaw);
+sheet.replaceSync(rawCss);
 
-// Upgrade to pipeline-processed CSS on first idle opportunity
-fetch(cssHref)
+// Upgrade to pipeline-processed CSS when served through Vite's CSS pipeline
+fetch(sheetUrl)
   .then((r) => r.text())
   .then((css) => {
     if (css) {
-      currentRaw = css;
       sheet.replaceSync(css);
     }
   })
@@ -41,15 +39,13 @@ if (import.meta.hot) {
   // provide an instant (unprocessed) update while the fetch is in flight.
   import.meta.hot.accept(['./hmr-utility-sheet.css?raw'], ([mod]) => {
     if (mod) {
-      currentRaw = (mod as {default: string}).default;
-      sheet.replaceSync(currentRaw);
+      sheet.replaceSync((mod as {default: string}).default);
     }
   });
 
-  // Accept ?hmr-url to get a fresh URL to the pipeline-processed CSS.
-  import.meta.hot.accept('./hmr-utility-sheet.css?hmr-url', (mod) => {
-    const href = (mod as {default: string}).default;
-    fetch(href)
+  // Accept ?url to re-fetch the pipeline-processed CSS after a change.
+  import.meta.hot.accept('./hmr-utility-sheet.css?url', () => {
+    fetch(`${sheetUrl}?t=${Date.now()}`)
       .then((r) => r.text())
       .then((css) => {
         if (css) {
