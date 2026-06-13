@@ -36,7 +36,7 @@ export class HmrModalChild extends LitElement {
 
   override render() {
     return html`
-      <p>This counter is inside a native &lt;dialog&gt; element.</p>
+      <p>This counter s inside a native &lt;dialog&gt; element.</p>
       <button id="child-increment" @click=${this.increment}>
         Child count: ${this.count}
       </button>

@@ -27,14 +27,6 @@ class LitDevtoolsIndicator extends HTMLElement {
       this.#countEl = this.shadowRoot.querySelector('.count');
     }
 
-    // The element has popover="manual" on the host; show it to render in the
-    // top layer, above all document content regardless of stacking contexts.
-    try {
-      this.showPopover();
-    } catch {
-      /* popover API not supported */
-    }
-
     (
       import.meta as {hot?: {on: (event: string, cb: () => void) => void}}
     ).hot?.on('vite:afterUpdate', () => {
