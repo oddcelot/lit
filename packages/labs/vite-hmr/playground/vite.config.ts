@@ -41,6 +41,8 @@ export default defineConfig(async () => {
       // the esbuild default merges duplicate declarations. Skip
       // minification — these are demo stylesheets meant to be read anyway.
       cssMinify: false,
+      // Skip minification — these are demo assets meant to be read.
+      minify: false,
       // Split each HMR component into its own chunk for better visibility
       // and debugging of the HMR output.
       rollupOptions: {

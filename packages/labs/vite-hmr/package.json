@@ -50,7 +50,7 @@
       ]
     },
     "build:ts": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --build --pretty && npx --no-install prettier --write --ignore-path /dev/null \"index.js\" \"lib/**/*.js\"",
       "dependencies": [
         "../../lit:build:ts:types"
       ],
