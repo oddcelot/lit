@@ -301,13 +301,7 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       const withCount =
         !isSimple &&
         (options.updateIndicator as {count?: boolean}).count !== false;
-      const idleOpacity = withCount ? '.5' : '0';
       const indicatorUrl = `/@fs/` + resolveRuntimeModule('indicator');
-
-      const containerRules = withCount
-        ? `display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums`
-        : `width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(26,26,46,.85)`;
-
       return [
         {
           tag: 'script',
@@ -317,19 +311,7 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
         {
           tag: 'lit-devtools-indicator',
           attrs: withCount ? {count: ''} : undefined,
-          children:
-            `<template shadowrootmode="open">` +
-            `<style>` +
-            `@keyframes pulse{0%{opacity:${idleOpacity}}15%{opacity:1}80%{opacity:1}100%{opacity:${idleOpacity}}}` +
-            `:host{position:fixed;inset:0;display:grid;z-index:2147483647;pointer-events:none;padding:var(--lit-devtools-hmr-indicator-padding,16px)}` +
-            `#container{place-self:var(--lit-devtools-hmr-indicator-align,end end);opacity:${idleOpacity};${containerRules}}` +
-            `#container.active{animation:pulse 2.5s ease-out forwards}` +
-            `.dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}` +
-            `</style>` +
-            `<div id="container"><span class="dot"></span>` +
-            (withCount ? `<span class="count">0</span>` : ``) +
-            `</div>` +
-            `</template>`,
+          children: '',
           injectTo: 'body',
         },
       ];
