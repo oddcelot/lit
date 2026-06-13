@@ -1,6 +1,6 @@
 /* Mimics a utility-first framework output (Tailwind, UnoCSS).
-   Edit this file to see all components that use these classes update
-   without re-rendering — the shared CSSStyleSheet is mutated in place. */
+   Lightning CSS processes these rules through the configured pipeline
+   (nesting flattened, oklch fallbacks) when served via ?hmr-url. */
 .flex {
   display: flex;
 }
@@ -33,6 +33,15 @@
 .bg-red {
   background: #ef4444;
 }
+
+.bg-blue,
+.bg-green,
+.bg-red {
+  &:hover {
+    background: oklch(62% 0.19 25);
+  }
+}
+
 .text-white {
   color: #fff;
 }
