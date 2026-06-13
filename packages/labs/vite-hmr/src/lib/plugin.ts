@@ -297,44 +297,21 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       if (!options.updateIndicator) {
         return;
       }
-      // Boolean `true` means simple mode — just a subtle dot, idle opacity
-      // 0, no count. The object form opts into visible tracking (count +
-      // idle opacity .5).
       const isSimple = typeof options.updateIndicator === 'boolean';
       const withCount =
         !isSimple &&
         (options.updateIndicator as {count?: boolean}).count !== false;
-      const idleOpacity = withCount ? '.5' : '0';
-      // Round wrapper without count; pill wrapper with count.
-      const containerCss = withCount
-        ? /*css*/ `#lhmr-indicator{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:${idleOpacity}}`
-        : /*css*/ `#lhmr-indicator{position:fixed;bottom:16px;right:16px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(26,26,46,.85);z-index:2147483647;pointer-events:none;opacity:${idleOpacity}}`;
-      // Serve the runtime indicator module as an external script so
-      // Vite processes it through its transform pipeline and provides
-      // `import.meta.hot`. Inline scripts injected by transformIndexHtml
-      // don't get that transform.
       const indicatorUrl = `/@fs/` + resolveRuntimeModule('indicator');
       return [
         {
-          tag: 'style',
-          children:
-            /*css*/ `@keyframes lhmr-pulse{0%{opacity:${idleOpacity}}15%{opacity:1}80%{opacity:1}100%{opacity:${idleOpacity}}}` +
-            containerCss +
-            /*css*/ `#lhmr-indicator.lhmr-active{animation:lhmr-pulse 2.5s ease-out forwards}` +
-            /*css*/ `.lhmr-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}`,
-          injectTo: 'head-prepend',
-        },
-        {
-          tag: 'div',
-          attrs: {id: 'lhmr-indicator'},
-          children:
-            `<span class="lhmr-dot"></span>` +
-            (withCount ? `<span class="lhmr-count">0</span>` : ``),
+          tag: 'script',
+          attrs: {type: 'module', src: indicatorUrl},
           injectTo: 'body',
         },
         {
-          tag: 'script',
-          attrs: {type: 'module', src: indicatorUrl},
+          tag: 'lhmr-indicator',
+          attrs: withCount ? {count: ''} : undefined,
+          children: '',
           injectTo: 'body',
         },
       ];

@@ -5,24 +5,79 @@
  */
 
 /**
- * Runtime module for the HMR update indicator injected by the plugin.
- * Served as an external module so that `import.meta.hot` is available.
- * The HTML element and optional count span are created by the plugin's
- * `transformIndexHtml` hook — this module only drives the animation.
+ * Custom element for the HMR update indicator.
+ * Defined as an external module so Vite's transform pipeline provides
+ * `import.meta.hot`.
+ *
+ * Usage:
+ *   <lhmr-indicator></lhmr-indicator>   — round dot, idle opacity 0
+ *   <lhmr-indicator count></lhmr-indicator>  — pill with count, idle opacity .5
  */
 
-const dot = document.getElementById('lhmr-indicator')!;
-const count: HTMLElement | null = document.querySelector('.lhmr-count');
-let n = 0;
+class LhmrIndicator extends HTMLElement {
+  #count = 0;
+  #root: ShadowRoot;
+  #countEl: HTMLElement | null = null;
 
-(import.meta as {hot?: {on: (event: string, cb: () => void) => void}}).hot?.on(
-  'vite:afterUpdate',
-  () => {
-    if (count !== null) {
-      count.textContent = String(++n);
+  constructor() {
+    super();
+    const withCount = this.hasAttribute('count');
+    const idleOpacity = withCount ? '.5' : '0';
+    this.#root = this.attachShadow({mode: 'closed'});
+
+    const dotStyle = `
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#22c55e;
+      flex-shrink:0;
+    `;
+
+    this.#root.innerHTML = `
+      <style>
+        @keyframes pulse {
+          0%{opacity:${idleOpacity}}
+          15%{opacity:1}
+          80%{opacity:1}
+          100%{opacity:${idleOpacity}}
+        }
+        :host{
+          position:fixed;
+          bottom:16px;
+          right:16px;
+          z-index:2147483647;
+          pointer-events:none;
+          opacity:${idleOpacity};
+          ${
+            withCount
+              ? `display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;`
+              : `width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(26,26,46,.85);`
+          }
+        }
+        :host(.active){animation:pulse 2.5s ease-out forwards}
+        .dot{${dotStyle}}
+      </style>
+      <span class="dot"></span>
+      ${withCount ? '<span class="count">0</span>' : ''}
+    `;
+
+    if (withCount) {
+      this.#countEl = this.#root.querySelector('.count');
     }
-    dot.classList.remove('lhmr-active');
-    void dot.offsetWidth;
-    dot.classList.add('lhmr-active');
   }
-);
+
+  connectedCallback() {
+    (
+      import.meta as {hot?: {on: (event: string, cb: () => void) => void}}
+    ).hot?.on('vite:afterUpdate', () => {
+      if (this.#countEl !== null) {
+        this.#countEl.textContent = String(++this.#count);
+      }
+      this.classList.remove('active');
+      void this.offsetWidth;
+      this.classList.add('active');
+    });
+  }
+}
+
+customElements.define('lhmr-indicator', LhmrIndicator);
