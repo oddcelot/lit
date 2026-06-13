@@ -20,6 +20,8 @@ import './hmr-linked-css.js';
 import './hmr-import-css.js';
 import './hmr-css-url.js';
 import './hmr-raw-css.js';
+import './hmr-shared-css-a.js';
+import './hmr-shared-css-b.js';
 
 export interface HmrProbeState {
   updates: number;
