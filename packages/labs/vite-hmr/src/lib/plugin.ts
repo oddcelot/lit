@@ -29,11 +29,15 @@ export interface LitHmrOptions {
   onIncompatible?: 'reload' | 'warn';
 
   /**
-   * Inject a small pulsing green dot in the bottom-right corner of the
-   * host page that briefly animates on each HMR update. Provides at-a-glance
-   * visual feedback without looking at the console. Defaults to `false`.
+   * Inject a small pulsing indicator in the bottom-right corner of the host
+   * page that briefly animates on each HMR update. Provides at-a-glance
+   * visual feedback without looking at the console.
+   *
+   * - `true` — enabled with update count shown.
+   * - `{ count: false }` — enabled without count (just the dot).
+   * - `false` or omitted — disabled. Defaults to `false`.
    */
-  updateIndicator?: boolean;
+  updateIndicator?: boolean | {count?: boolean};
 }
 
 /**
@@ -273,21 +277,40 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       if (!options.updateIndicator) {
         return;
       }
+      const withCount =
+        typeof options.updateIndicator !== 'object' ||
+        options.updateIndicator.count !== false;
       return [
         {
           tag: 'style',
-          children: `@keyframes __lhmr_p{0%{transform:scale(1);opacity:.3}20%{transform:scale(2);opacity:1}100%{transform:scale(1);opacity:.2}}#__lhmr_d{position:fixed;bottom:16px;right:16px;width:12px;height:12px;border-radius:50%;background:#22c55e;z-index:2147483647;pointer-events:none;opacity:.2}#__lhmr_d.__lhmr_a{animation:__lhmr_p 2s ease-out forwards}`,
+          // Slide-up pill with green dot (and optional count) that fades
+          // in on animation then fades back out.
+          children:
+            `@keyframes __lhmr_p{0%{opacity:0;transform:translateY(8px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.15)}25%{transform:translateY(0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-4px) scale(.9)}}` +
+            `#__lhmr_d{position:fixed;bottom:16px;right:16px;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 7px;background:rgba(26,26,46,.85);color:#fff;border-radius:20px;font:12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;z-index:2147483647;pointer-events:none;opacity:0}` +
+            `#__lhmr_d.__lhmr_a{animation:__lhmr_p 2.5s ease-out forwards}` +
+            `.__lhmr_dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}`,
           injectTo: 'head-prepend',
         },
         {
           tag: 'div',
           attrs: {id: '__lhmr_d'},
+          children:
+            `<span class="__lhmr_dot"></span>` +
+            (withCount ? `<span class="__lhmr_c">0</span>` : ``),
           injectTo: 'body',
         },
         {
           tag: 'script',
           attrs: {type: 'module'},
-          children: `const d=document.getElementById('__lhmr_d');import.meta.hot?.on('vite:afterUpdate',()=>{d.classList.remove('__lhmr_a');void d.offsetWidth;d.classList.add('__lhmr_a')});`,
+          children:
+            `const d=document.getElementById('__lhmr_d');` +
+            (withCount
+              ? `const c=document.querySelector('.__lhmr_c');let n=0;`
+              : ``) +
+            `import.meta.hot?.on('vite:afterUpdate',()=>{` +
+            (withCount ? `c.textContent=++n;` : ``) +
+            `d.classList.remove('__lhmr_a');void d.offsetWidth;d.classList.add('__lhmr_a')});`,
           injectTo: 'body',
         },
       ];
