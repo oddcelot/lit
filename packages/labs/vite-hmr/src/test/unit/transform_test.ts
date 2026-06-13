@@ -194,3 +194,57 @@ describe('litHmr ?hmr-url css query', () => {
     expect(callLoad('/app/src/el.ts')).toBeNull();
   });
 });
+
+describe('litHmr css literals plugin', () => {
+  const STYLED =
+    'const styles = css`#box { color: red; &:hover { background: oklch(62% 0.19 25); } }`;';
+
+  const makePlugin = async (transformer: string) => {
+    const plugin = litHmr().find((p) => p.name === 'lit-hmr-css-literals')!;
+    await (
+      plugin.configResolved as unknown as (config: unknown) => Promise<void>
+    )({
+      command: 'serve',
+      css: {transformer, lightningcss: {targets: {chrome: 100 << 16}}},
+    });
+    return plugin;
+  };
+  const callTransform = (plugin: unknown, code: string, id: string) =>
+    (
+      (plugin as {transform: unknown}).transform as (
+        this: {warn: (msg: string) => void},
+        code: string,
+        id: string
+      ) => {code: string} | null
+    ).call({warn: () => {}}, code, id);
+
+  test('inert unless css.transformer is lightningcss', async () => {
+    const plugin = await makePlugin('postcss');
+    expect(callTransform(plugin, STYLED, '/app/src/el.ts')).toBeNull();
+  });
+
+  test('downlevels css literals for the configured targets', async () => {
+    const plugin = await makePlugin('lightningcss');
+    const result = callTransform(plugin, STYLED, '/app/src/el.ts')!;
+    expect(result.code).toContain('#box:hover');
+    expect(result.code).not.toContain('&:hover');
+    expect(result.code).not.toContain('oklch');
+  });
+
+  test('leaves literals with interpolations or escapes alone', async () => {
+    const plugin = await makePlugin('lightningcss');
+    const holes = 'const s = css`#box { color: ${color}; }`;';
+    expect(callTransform(plugin, holes, '/app/src/el.ts')).toBeNull();
+    const escapes = 'const s = css`#box::before { content: "\\2014"; }`;';
+    expect(callTransform(plugin, escapes, '/app/src/el.ts')).toBeNull();
+  });
+
+  test('skips node_modules and non-css-tag templates', async () => {
+    const plugin = await makePlugin('lightningcss');
+    expect(
+      callTransform(plugin, STYLED, '/repo/node_modules/lib/el.js')
+    ).toBeNull();
+    const otherTag = 'const s = unsafeCSS`#box { &:hover { color: red; } }`;';
+    expect(callTransform(plugin, otherTag, '/app/src/el.ts')).toBeNull();
+  });
+});

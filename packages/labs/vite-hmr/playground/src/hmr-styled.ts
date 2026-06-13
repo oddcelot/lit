@@ -9,6 +9,12 @@ import {customElement} from 'lit/decorators.js';
 
 /**
  * `css` static styles: editing the color must restyle without DOM loss.
+ *
+ * The nested &:hover with oklch() is modern syntax on purpose: with
+ * css.transformer 'lightningcss' (see vite.config.ts) the plugin runs
+ * Lightning CSS over `css` tagged template literals too, downleveling them
+ * for the configured targets just like .css files — inspect the adopted
+ * stylesheet to see the flattened rules.
  */
 @customElement('hmr-styled')
 export class HmrStyled extends LitElement {
@@ -18,6 +24,10 @@ export class HmrStyled extends LitElement {
       color: #fff;
       padding: 1rem;
       border-radius: 4px;
+
+      &:hover {
+        background: oklch(48% 0.14 150);
+      }
     }
     .badge {
       font-size: 0.8em;

@@ -6,7 +6,8 @@
 
 import {existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import type {Plugin} from 'vite';
+import type {CSSOptions, Plugin} from 'vite';
+import MagicString from 'magic-string';
 import {INSTALL_ID, VIRTUAL_PREFIX, transformLitModule} from './transform.js';
 import {WRAP_TABLE} from './wrap-table.js';
 
@@ -96,9 +97,95 @@ export const litCssQueries = (): Plugin => ({
 });
 
 /**
+ * A `css` tagged template literal with no interpolations and no escape
+ * sequences — the only kind we can hand to a CSS parser as-is. Literals
+ * with `${…}` holes or backslashes simply don't match and stay untouched.
+ * The lookbehind keeps `unsafeCSS`/`myCss`-style tags from matching.
+ */
+const CSS_LITERAL_RE = /(?<![\w$.])css`((?:[^`\\$]|\$(?!\{))*)`/g;
+
+/**
+ * Runs Vite's configured Lightning CSS over `css` tagged template literals
+ * in user modules, which the CSS pipeline itself never sees (they're plain
+ * JS strings to it). Inert unless `css.transformer` is `'lightningcss'`;
+ * options come from `css.lightningcss`, so component styles get the same
+ * treatment (targets, drafts, …) as `.css` files. Applies in dev and build.
+ */
+const litCssLiterals = (): Plugin => {
+  let lightningcss: typeof import('lightningcss') | null = null;
+  let options: CSSOptions['lightningcss'];
+  let minify = false;
+  return {
+    name: 'lit-hmr-css-literals',
+    async configResolved(config) {
+      if (config.css.transformer !== 'lightningcss') {
+        return;
+      }
+      // The transformer setting guarantees the dependency: Vite itself
+      // can't process .css files without it.
+      lightningcss = await import('lightningcss');
+      // cssModules makes no sense for a literal; everything else carries
+      // over.
+      const {cssModules: _cssModules, ...rest} = config.css.lightningcss ?? {};
+      options = rest;
+      minify = config.command === 'build';
+    },
+    transform(code, id) {
+      if (lightningcss === null) {
+        return null;
+      }
+      if (id.startsWith('\0') || id.includes('/node_modules/')) {
+        return null;
+      }
+      const [file] = id.split('?', 2);
+      if (!JS_FILE_RE.test(file) || !code.includes('css`')) {
+        return null;
+      }
+      const ms = new MagicString(code);
+      let changed = false;
+      for (const m of code.matchAll(CSS_LITERAL_RE)) {
+        const literal = m[1];
+        if (literal.trim() === '') {
+          continue;
+        }
+        let out: string;
+        try {
+          const result = lightningcss.transform({
+            ...options,
+            filename: file,
+            code: Buffer.from(literal),
+            minify,
+          });
+          out = Buffer.from(result.code).toString();
+        } catch (e) {
+          this.warn(
+            `[lit-hmr] skipping css literal Lightning CSS couldn't parse: ${
+              (e as Error).message
+            }`
+          );
+          continue;
+        }
+        // Re-escape for the template literal the output goes back into.
+        out = out.replace(/[\\`$]/g, '\\$&');
+        if (out !== literal) {
+          const start = m.index + 'css`'.length;
+          ms.overwrite(start, start + literal.length, out);
+          changed = true;
+        }
+      }
+      if (!changed) {
+        return null;
+      }
+      return {code: ms.toString(), map: ms.generateMap({hires: true})};
+    },
+  };
+};
+
+/**
  * Vite plugin set providing true HMR for Lit: template-strings interning
- * plus in-place custom element class patching (dev-only), and the
- * `?hmr-url` CSS import query (dev and build).
+ * plus in-place custom element class patching (dev-only), the `?hmr-url`
+ * CSS import query (dev and build), and Lightning CSS processing of `css`
+ * tagged template literals when `css.transformer` is `'lightningcss'`.
  */
 export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
   const runtimeOptions = {
@@ -176,5 +263,5 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       return transformLitModule(code);
     },
   };
-  return [litCssQueries(), hmr];
+  return [litCssQueries(), litCssLiterals(), hmr];
 };
