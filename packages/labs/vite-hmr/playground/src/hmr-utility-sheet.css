@@ -34,14 +34,6 @@
   background: #ef4444;
 }
 
-.bg-blue,
-.bg-green,
-.bg-red {
-  &:hover {
-    background: oklch(62% 0.19 25);
-  }
-}
-
 .text-white {
   color: #fff;
 }
