@@ -14,7 +14,7 @@ export default defineConfig(async () => {
   // The indirection keeps the config bundler from trying (and warning
   // about failing) to resolve the fallback inside the monorepo.
   const fallback = '@oddsquad/vite-plugin-lit';
-  const {litHmr} = await import('../index.js').catch(
+  const {litPlugin} = await import('../index.js').catch(
     () => import(/* @vite-ignore */ fallback)
   );
   return {
@@ -56,6 +56,6 @@ export default defineConfig(async () => {
         },
       },
     },
-    plugins: [litHmr({updateIndicator: {count: true}})],
+    plugins: [litPlugin({updateIndicator: {count: true}})],
   };
 });

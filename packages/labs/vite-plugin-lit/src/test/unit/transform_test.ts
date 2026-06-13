@@ -11,7 +11,7 @@ import {
   isComponentModule,
   transformLitModule,
 } from '../../lib/transform.js';
-import {litHmr} from '../../lib/plugin.js';
+import {litPlugin} from '../../lib/plugin.js';
 
 const COMPONENT = `import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
@@ -120,8 +120,8 @@ describe('isComponentModule', () => {
   });
 });
 
-describe('litHmr plugin transform filter', () => {
-  const plugin = litHmr().find((p) => p.name === 'lit-hmr')!;
+describe('litPlugin transform filter', () => {
+  const plugin = litPlugin().find((p) => p.name === 'lit-plugin')!;
   const callTransform = (code: string, id: string, ssr?: boolean) => {
     const hook = plugin.transform as (
       code: string,
@@ -160,8 +160,8 @@ describe('litHmr plugin transform filter', () => {
   });
 });
 
-describe('litHmr ?hmr-url css query', () => {
-  const plugin = litHmr().find((p) => p.name === 'lit-hmr-css-query')!;
+describe('litPlugin ?hmr-url css query', () => {
+  const plugin = litPlugin().find((p) => p.name === 'lit-css-query')!;
   const fakeCtx = {
     resolve: async (source: string) => ({id: `/app/src/${source.slice(2)}`}),
   };
@@ -178,7 +178,7 @@ describe('litHmr ?hmr-url css query', () => {
 
   test('resolves css hmr-url imports to a virtual JS id', async () => {
     expect(await callResolveId('./box.css?hmr-url', '/app/src/el.ts')).toBe(
-      '\0lit-hmr:hmr-url:/app/src/box.css.js'
+      '\0lit-plugin:hmr-url:/app/src/box.css.js'
     );
   });
 
@@ -188,19 +188,19 @@ describe('litHmr ?hmr-url css query', () => {
   });
 
   test('loads a wrapper importing ?url through devCacheBust', () => {
-    const code = callLoad('\0lit-hmr:hmr-url:/app/src/box.css.js')!;
+    const code = callLoad('\0lit-plugin:hmr-url:/app/src/box.css.js')!;
     expect(code).toContain('"/app/src/box.css?url"');
     expect(code).toContain('devCacheBust(url)');
     expect(callLoad('/app/src/el.ts')).toBeNull();
   });
 });
 
-describe('litHmr css literals plugin', () => {
+describe('litPlugin css literals plugin', () => {
   const STYLED =
     'const styles = css`#box { color: red; &:hover { background: oklch(62% 0.19 25); } }`;';
 
   const makePlugin = async (transformer: string) => {
-    const plugin = litHmr().find((p) => p.name === 'lit-hmr-css-literals')!;
+    const plugin = litPlugin().find((p) => p.name === 'lit-css-literals')!;
     await (
       plugin.configResolved as unknown as (config: unknown) => Promise<void>
     )({

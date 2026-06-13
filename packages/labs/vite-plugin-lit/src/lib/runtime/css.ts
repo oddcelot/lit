@@ -32,7 +32,7 @@
  * @example
  * ```ts
  * import cssUrl from './my-element.css?url';
- * import {devCacheBust} from '@lit-labs/vite-hmr/css.js';
+ * import {devCacheBust} from '@lit-labs/vite-plugin-lit/css.js';
  *
  * const href = devCacheBust(cssUrl); // module scope
  * html`<link rel="stylesheet" href="${href}" />`;
@@ -108,7 +108,7 @@ export interface UrlSheet {
  *
  * @example
  * ```ts
- * import {urlSheet} from '@lit-labs/vite-hmr/css.js';
+ * import {urlSheet} from '@lit-labs/vite-plugin-lit/css.js';
  * import sheetUrl from './utils.css?url';
  *
  * const {sheet, onHotUpdate} = urlSheet(sheetUrl);

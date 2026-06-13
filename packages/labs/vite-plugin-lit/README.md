@@ -1,7 +1,6 @@
-# @lit-labs/vite-hmr
+# @lit-labs/vite-plugin-lit
 
-A dev-only Vite plugin providing true hot module replacement for Lit
-components.
+A Vite plugin for Lit projects with HMR, CSS helpers, and Lightning CSS support.
 
 > [!WARNING]
 >
@@ -37,27 +36,29 @@ This plugin fixes that with two cooperating mechanisms:
 ```ts
 // vite.config.ts
 import {defineConfig} from 'vite';
-import {litHmr} from '@lit-labs/vite-hmr';
+import {litPlugin} from '@lit-labs/vite-plugin-lit';
 
 export default defineConfig({
-  plugins: [litHmr()],
+  plugins: [litPlugin()],
 });
 ```
 
-The plugin only applies to the dev server (`apply: 'serve'`); production
-builds are untouched.
+The HMR feature only applies to the dev server (`apply: 'serve'`); production
+builds are untouched. The CSS query (`?hmr-url`) and Lightning CSS literal
+processing apply in both dev and build.
 
 ## Options
 
 | Option           | Type                 | Default    | Description                                                                                                                        |
 | ---------------- | -------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `hmr`            | `boolean`            | `true`     | Enable in-place HMR for Lit component classes.                                                                                     |
 | `reconnect`      | `boolean`            | `false`    | Cycle `disconnectedCallback()`/`connectedCallback()` on live instances after a hot patch. Interning makes this mostly unnecessary. |
 | `onIncompatible` | `'reload' \| 'warn'` | `'reload'` | What to do when a component can't be hot-patched in place: automatically reload the page, or only warn in the console.             |
 
 ## Stylesheets
 
 CSS in shadow roots can be delivered a few ways, with different HMR
-behaviors. The plugin ships helpers under `@lit-labs/vite-hmr/css.js`.
+behaviors. The plugin ships helpers under `@lit-labs/vite-plugin-lit/css.js`.
 
 ### Shared adopted stylesheet from a `.css` asset
 
@@ -71,7 +72,7 @@ unstyled content on initial load while the first fetch resolves.
 
 ```ts
 // utility-sheet.ts
-import {urlSheet} from '@lit-labs/vite-hmr/css.js';
+import {urlSheet} from '@lit-labs/vite-plugin-lit/css.js';
 import sheetUrl from './utility-sheet.css?url';
 
 const {sheet, onHotUpdate} = urlSheet(sheetUrl);
@@ -187,16 +188,16 @@ A manually inspectable fixture app (also the source for the e2e
 fixtures). The dev server runs in a WebContainer, so HMR works live in
 the browser — no local checkout needed:
 
-- [Open on StackBlitz](https://stackblitz.com/fork/github/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/playground?file=src%2Fhmr-counter.ts)
+- [Open on StackBlitz](https://stackblitz.com/fork/github/oddcelot/lit/tree/feat/labs-vite-plugin-lit/packages/labs/vite-plugin-lit/playground?file=src%2Fhmr-counter.ts)
   (starts the dev server automatically)
-- [Open on bolt.new](https://bolt.new/github.com/oddcelot/lit/tree/feat/labs-vite-hmr/packages/labs/vite-hmr/playground)
+- [Open on bolt.new](https://bolt.new/github.com/oddcelot/lit/tree/feat/labs-vite-plugin-lit/packages/labs/vite-plugin-lit/playground)
   (run `npm run dev` in the Bolt terminal — URL imports don't
   auto-start)
 
 Or locally, inside the monorepo:
 
 ```sh
-cd packages/labs/vite-hmr
+cd packages/labs/vite-plugin-lit
 npm run dev   # http://localhost:5179
 ```
 
@@ -204,7 +205,7 @@ Edit the templates, styles, and labels in `playground/src/*.ts` and watch
 counts, focus, and DOM identity survive. The page HUD counts HMR updates;
 every component shows a `renders: n` badge.
 
-Standalone runs install the interim npm publish of this plugin
+Standalone runs use the interim npm publish of this plugin
 (`@oddsquad/vite-plugin-lit`) on Vite 7 — Vite 8's rolldown wasm binding
 currently crashes in WebContainers
 ([webcontainer-core#2104](https://github.com/stackblitz/webcontainer-core/issues/2104)).
@@ -213,7 +214,7 @@ Inside the monorepo the playground uses the local build on Vite 8.
 ## Tests
 
 ```sh
-cd packages/labs/vite-hmr
+cd packages/labs/vite-plugin-lit
 npm test            # unit + e2e
 npm run test:unit   # node-only unit tests
 npm run test:e2e    # spawns vite dev servers + system Chrome

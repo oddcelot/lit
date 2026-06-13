@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createServer, type ViteDevServer} from 'vite';
 import {chromium, type Browser, type Page} from 'playwright-core';
-import {litHmr, type LitHmrOptions} from '../../index.js';
+import {litPlugin, type LitPluginOptions} from '../../index.js';
 import {litCssQueries} from '../../lib/plugin.js';
 
 const PACKAGE_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
@@ -32,7 +32,7 @@ export interface Fixture {
 
 export interface StartFixtureOptions {
   /** `false` disables the plugin entirely (baseline runs). */
-  plugin?: false | LitHmrOptions;
+  plugin?: false | LitPluginOptions;
 }
 
 export const startFixture = async (
@@ -71,7 +71,7 @@ export const startFixture = async (
     plugins:
       options.plugin === false
         ? [litCssQueries()]
-        : [litHmr(options.plugin ?? {})],
+        : [litPlugin(options.plugin ?? {})],
   });
   await server.listen();
   const address = server.httpServer!.address();

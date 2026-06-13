@@ -12,9 +12,9 @@ import {INSTALL_ID, VIRTUAL_PREFIX, transformLitModule} from './transform.js';
 import {WRAP_TABLE} from './wrap-table.js';
 
 /**
- * Options for the Lit HMR Vite plugin.
+ * Options for the Lit Vite plugin.
  */
-export interface LitHmrOptions {
+export interface LitPluginOptions {
   /**
    * Enable in-place HMR for Lit component classes. When `false`, the
    * plugin skips all HMR transforms and runtime injection — useful when
@@ -49,6 +49,9 @@ export interface LitHmrOptions {
   updateIndicator?: boolean | {count?: boolean};
 }
 
+/** @deprecated Use `LitPluginOptions` instead. */
+export type LitHmrOptions = LitPluginOptions;
+
 /**
  * Resolves a runtime module to an absolute fs path (served via `/@fs/`), so
  * the plugin works from any served root. Falls back from the built `.js` to
@@ -61,7 +64,7 @@ const resolveRuntimeModule = (name: string): string => {
       return fileURLToPath(url).replace(/\\/g, '/');
     }
   }
-  throw new Error(`[lit-hmr] runtime module not found: ${name}`);
+  throw new Error(`[lit-plugin] runtime module not found: ${name}`);
 };
 
 const JS_FILE_RE = /\.[cm]?[jt]sx?$/;
@@ -74,11 +77,11 @@ const JS_FILE_RE = /\.[cm]?[jt]sx?$/;
  * browser refetches the changed stylesheet; in build the `?url` asset URL
  * passes through unchanged.
  */
-const HMR_URL_QUERY_RE = /^([^?]+\.css)\?(?:[^&]*&)*hmr-url(?:&.*)?$/;
-const HMR_URL_PREFIX = '\0lit-hmr:hmr-url:';
+const CSS_URL_QUERY_RE = /^([^?]+\.css)\?(?:[^&]*&)*hmr-url(?:&.*)?$/;
+const CSS_URL_VIRTUAL_PREFIX = '\0lit-plugin:hmr-url:';
 // The virtual id must not end in `.css`, or Vite's CSS plugins (which match
 // the id's extension regardless of `\0`) would compile the wrapper as CSS.
-const HMR_URL_SUFFIX = '.js';
+const CSS_URL_VIRTUAL_SUFFIX = '.js';
 
 /**
  * Import-query support, served in dev and build alike (source code using
@@ -87,12 +90,12 @@ const HMR_URL_SUFFIX = '.js';
  * working without the HMR plugin.
  */
 export const litCssQueries = (): Plugin => ({
-  name: 'lit-hmr-css-query',
+  name: 'lit-css-query',
   // Vite's core resolver claims `./x.css?hmr-url` for the CSS pipeline
   // before normal plugins get a look, so resolve ahead of it.
   enforce: 'pre',
   async resolveId(id, importer) {
-    const match = HMR_URL_QUERY_RE.exec(id);
+    const match = CSS_URL_QUERY_RE.exec(id);
     if (match === null) {
       return null;
     }
@@ -100,13 +103,16 @@ export const litCssQueries = (): Plugin => ({
     if (resolved === null) {
       return null;
     }
-    return HMR_URL_PREFIX + resolved.id + HMR_URL_SUFFIX;
+    return CSS_URL_VIRTUAL_PREFIX + resolved.id + CSS_URL_VIRTUAL_SUFFIX;
   },
   load(id) {
-    if (!id.startsWith(HMR_URL_PREFIX)) {
+    if (!id.startsWith(CSS_URL_VIRTUAL_PREFIX)) {
       return null;
     }
-    const file = id.slice(HMR_URL_PREFIX.length, -HMR_URL_SUFFIX.length);
+    const file = id.slice(
+      CSS_URL_VIRTUAL_PREFIX.length,
+      -CSS_URL_VIRTUAL_SUFFIX.length
+    );
     const helperPath = resolveRuntimeModule('css');
     return (
       `import url from ${JSON.stringify(`${file}?url`)};\n` +
@@ -136,7 +142,7 @@ const litCssLiterals = (): Plugin => {
   let options: CSSOptions['lightningcss'];
   let minify = false;
   return {
-    name: 'lit-hmr-css-literals',
+    name: 'lit-css-literals',
     async configResolved(config) {
       if (config.css.transformer !== 'lightningcss') {
         return;
@@ -179,7 +185,7 @@ const litCssLiterals = (): Plugin => {
           out = Buffer.from(result.code).toString();
         } catch (e) {
           this.warn(
-            `[lit-hmr] skipping css literal Lightning CSS couldn't parse: ${
+            `[lit-plugin] skipping css literal Lightning CSS couldn't parse: ${
               (e as Error).message
             }`
           );
@@ -202,19 +208,17 @@ const litCssLiterals = (): Plugin => {
 };
 
 /**
- * Vite plugin set providing true HMR for Lit: template-strings interning
- * plus in-place custom element class patching (dev-only), the `?hmr-url`
- * CSS import query (dev and build), and Lightning CSS processing of `css`
- * tagged template literals when `css.transformer` is `'lightningcss'`.
+ * Vite plugin set providing HMR, CSS helpers, and Lightning CSS processing
+ * for Lit projects.
  */
-export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
+export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
   const enableHmr = options.hmr ?? true;
   const runtimeOptions = {
     reconnect: options.reconnect ?? false,
     onIncompatible: options.onIncompatible ?? 'reload',
   };
   const hmr: Plugin = {
-    name: 'lit-hmr',
+    name: 'lit-plugin',
     apply: 'serve',
     config: () => {
       if (!enableHmr) {
@@ -224,17 +228,17 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
       // lit family stays prebundle-eligible on purpose: the wrapper modules'
       // bare imports then resolve to the same URL every other importer gets —
       // single lit instance, single template cache.
-      return {optimizeDeps: {exclude: ['@lit-labs/vite-hmr']}};
+      return {optimizeDeps: {exclude: ['@lit-labs/vite-plugin-lit']}};
     },
     resolveId(id) {
       // Resolve the browser CSS helpers and indicator runtime to the copy
       // shipped next to this plugin, so they work even when the package
       // isn't reachable through node resolution from the served root (and
       // stay out of prebundling).
-      if (id === '@lit-labs/vite-hmr/css.js') {
+      if (id === '@lit-labs/vite-plugin-lit/css.js') {
         return resolveRuntimeModule('css');
       }
-      if (id === '@lit-labs/vite-hmr/indicator.js') {
+      if (id === '@lit-labs/vite-plugin-lit/indicator.js') {
         return resolveRuntimeModule('indicator');
       }
       if (enableHmr && id.startsWith(VIRTUAL_PREFIX)) {
@@ -319,3 +323,6 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
   };
   return [litCssQueries(), litCssLiterals(), hmr];
 };
+
+/** @deprecated Use `litPlugin` instead. */
+export const litHmr = litPlugin;

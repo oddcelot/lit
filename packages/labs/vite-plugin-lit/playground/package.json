@@ -1,6 +1,6 @@
 {
-  "name": "vite-hmr-playground",
-  "description": "Playground for the Lit HMR Vite plugin — self-contained so it can be opened on StackBlitz/bolt.new straight from the repo URL",
+  "name": "vite-plugin-lit-playground",
+  "description": "Playground for the Lit Vite plugin — self-contained so it can be opened on StackBlitz/bolt.new straight from the repo URL",
   "private": true,
   "version": "0.0.0",
   "type": "module",

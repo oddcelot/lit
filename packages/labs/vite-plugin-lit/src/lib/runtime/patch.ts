@@ -72,9 +72,9 @@ interface BrandedWrapper {
 }
 
 // Exactly one patch state per page, even if this module loads twice.
-const STATE_KEY = Symbol.for('@lit-labs/vite-hmr#patch');
+const STATE_KEY = Symbol.for('@lit-labs/vite-plugin-lit#patch');
 // Brands our lifecycle wrappers so re-instrumentation is idempotent.
-const RECORD_BRAND = Symbol.for('@lit-labs/vite-hmr#wrapperRecord');
+const RECORD_BRAND = Symbol.for('@lit-labs/vite-plugin-lit#wrapperRecord');
 
 const PROTO_SKIP: ReadonlyArray<PropertyKey> = ['constructor'];
 const STATIC_SKIP: ReadonlyArray<PropertyKey> = ['prototype', 'name', 'length'];
@@ -236,11 +236,13 @@ const incompatible = (
 ): void => {
   if (state.options.onIncompatible === 'warn') {
     console.warn(
-      `[lit-hmr] <${tagName}> can't be hot-patched (${reason}). ` +
+      `[lit-plugin] <${tagName}> can't be hot-patched (${reason}). ` +
         `Reload the page to pick up the change.`
     );
   } else {
-    console.info(`[lit-hmr] <${tagName}>: ${reason} — performing full reload.`);
+    console.info(
+      `[lit-plugin] <${tagName}>: ${reason} — performing full reload.`
+    );
     location.reload();
   }
 };
@@ -323,7 +325,7 @@ const hotPatch = (
       oldObserved.some((attr, i) => attr !== newObserved[i])
     ) {
       console.info(
-        `[lit-hmr] <${record.tagName}> changed observedAttributes; the ` +
+        `[lit-plugin] <${record.tagName}> changed observedAttributes; the ` +
           `platform registry can't pick this up — reload recommended.`
       );
     }

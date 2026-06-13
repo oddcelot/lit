@@ -14,7 +14,7 @@ import {WRAP_TABLE} from './wrap-table.js';
  * import-analysis resolves them through our `resolveId` and encodes the
  * `\0` for the browser, so it never reaches the network.
  */
-export const VIRTUAL_PREFIX = '\0lit-hmr:';
+export const VIRTUAL_PREFIX = '\0lit-plugin:';
 
 /** Virtual module that installs the define interceptor. */
 export const INSTALL_ID = `${VIRTUAL_PREFIX}install`;
@@ -39,7 +39,7 @@ export const isComponentModule = (
   code.includes('customElements.define(') ||
   (hasLitFamilyImport && /\bcustomElement\s*\(/.test(code));
 
-export interface LitHmrTransformResult {
+export interface LitPluginTransformResult {
   code: string;
   map: ReturnType<MagicString['generateMap']>;
 }
@@ -49,7 +49,7 @@ export interface LitHmrTransformResult {
  *
  * - Pass 1 (all user modules — shared template-partial modules must intern
  *   too): rewrite import/export-from/dynamic-import specifiers found in the
- *   wrap table to their `\0lit-hmr:` wrapper module.
+ *   wrap table to their `\0lit-plugin:` wrapper module.
  * - Pass 2 (component modules): prepend the interceptor install import
  *   (static imports hoist, so the interceptor is installed before this
  *   module's defines) and append a self-accept (re-execution alone triggers
@@ -59,7 +59,7 @@ export interface LitHmrTransformResult {
  */
 export const transformLitModule = async (
   code: string
-): Promise<LitHmrTransformResult | null> => {
+): Promise<LitPluginTransformResult | null> => {
   // Cheap pre-filter before parsing.
   if (!code.includes('lit') && !code.includes('customElements')) {
     return null;
