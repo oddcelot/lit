@@ -309,7 +309,7 @@ export const litHmr = (options: LitHmrOptions = {}): Plugin[] => {
           injectTo: 'body',
         },
         {
-          tag: 'lhmr-indicator',
+          tag: 'lit-devtools-indicator',
           attrs: withCount ? {count: ''} : undefined,
           children: '',
           injectTo: 'body',

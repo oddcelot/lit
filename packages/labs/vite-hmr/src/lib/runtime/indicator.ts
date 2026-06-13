@@ -10,11 +10,11 @@
  * `import.meta.hot`.
  *
  * Usage:
- *   <lhmr-indicator></lhmr-indicator>   — round dot, idle opacity 0
- *   <lhmr-indicator count></lhmr-indicator>  — pill with count, idle opacity .5
+ *   <lit-devtools-indicator></lit-devtools-indicator>   — round dot
+ *   <lit-devtools-indicator count></lit-devtools-indicator>  — pill with count
  */
 
-class LhmrIndicator extends HTMLElement {
+class LitDevtoolsIndicator extends HTMLElement {
   #count = 0;
   #root: ShadowRoot;
   #countEl: HTMLElement | null = null;
@@ -80,4 +80,4 @@ class LhmrIndicator extends HTMLElement {
   }
 }
 
-customElements.define('lhmr-indicator', LhmrIndicator);
+customElements.define('lit-devtools-indicator', LitDevtoolsIndicator);
