@@ -6,22 +6,27 @@
 
 import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import cssHref from './hmr-shared.css?hmr-url';
+import sharedSheet from './hmr-shared-sheet.js';
 
 /**
- * First component sharing the `hmr-shared.css` stylesheet with
- * `hmr-shared-css-b`. Both load the same `.css` file via `<link>` in their
- * shadow roots. When the CSS file changes, both components update.
+ * First component sharing the `hmr-shared.css` stylesheet via a shared
+ * `CSSStyleSheet` object. Lit adopts the exact same sheet instance into
+ * both shadow roots — when the CSS changes, `replaceSync()` on that sheet
+ * updates all consumers without any component re-render.
+ *
+ * Compare with `hmr-linked-css` where a `<link>` href changes forces a
+ * full re-render on each HMR cycle.
  */
 
 @customElement('hmr-shared-css-a')
 export class HmrSharedCssA extends LitElement {
+  static override styles = [sharedSheet];
+
   private renders = 0;
 
   override render() {
     return html`
-      <link rel="stylesheet" href="${cssHref}" />
-      <h2>Shared CSS — A</h2>
+      <h2>Shared Sheet — A</h2>
       <div class="shared-card">Component A</div>
       <span class="shared-badge" id="badge">renders: 0</span>
     `;

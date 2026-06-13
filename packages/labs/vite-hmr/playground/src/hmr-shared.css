@@ -1,15 +1,16 @@
-/* Shared stylesheet used by two different components.
-   Editing this file triggers HMR in both consumers simultaneously. */
+/* Shared stylesheet used by two components via adoptedStyleSheets.
+   This file is imported via ?raw (bypasses CSS pipeline), so stick to
+   syntax supported natively by modern browsers. */
 .shared-card {
   background: rgb(60, 80, 180);
   color: #fff;
   padding: 1rem;
   border-radius: 8px;
   font-weight: 600;
+}
 
-  &:hover {
-    background: oklch(52% 0.16 265);
-  }
+.shared-card:hover {
+  background: rgb(40, 60, 200);
 }
 
 .shared-badge {
