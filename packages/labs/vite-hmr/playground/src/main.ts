@@ -43,8 +43,5 @@ window.__hmr = {updates: 0, keep: new Map()};
 if (import.meta.hot) {
   import.meta.hot.on('vite:afterUpdate', () => {
     window.__hmr.updates++;
-    document.getElementById('hmr-updates')!.textContent = String(
-      window.__hmr.updates
-    );
   });
 }
