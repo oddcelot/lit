@@ -41,6 +41,18 @@ export default defineConfig(async () => {
       // the esbuild default merges duplicate declarations. Skip
       // minification — these are demo stylesheets meant to be read anyway.
       cssMinify: false,
+      // Split each HMR component into its own chunk for better visibility
+      // and debugging of the HMR output.
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('/src/hmr-') && id.endsWith('.ts')) {
+              const match = id.match(/\/src\/(hmr-[\w-]+)\.ts$/);
+              if (match) return match[1];
+            }
+          },
+        },
+      },
     },
     plugins: [litHmr()],
   };
