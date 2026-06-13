@@ -1,6 +1,9 @@
-/* Mimics a utility-first framework output (Tailwind, UnoCSS).
-   Lightning CSS processes these rules through the configured pipeline
-   (nesting flattened, oklch fallbacks) when served via ?hmr-url. */
+/* Mimics a utility-first framework output (Tailwind, UnoCSS), shared across
+   components via a single adopted CSSStyleSheet — see hmr-utility-sheet.ts.
+   Loaded via ?url as a standalone .css asset (kept as a real file in the
+   build output) and fetched into the sheet at runtime; Lightning CSS still
+   processes it through the configured pipeline (nesting flattened, oklch
+   fallbacks). */
 .flex {
   display: flex;
 }

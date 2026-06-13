@@ -5,53 +5,54 @@
  */
 
 import sheetUrl from './hmr-utility-sheet.css?url';
-import rawCss from './hmr-utility-sheet.css?raw';
 
 /**
  * A single `CSSStyleSheet` adopted by multiple components — simulates a
- * utility-first framework output (Tailwind, UnoCSS) that's shared across
- * the app. When the utility classes change (new theme colors, spacing
- * scale updates, etc.), `replaceSync()` propagates to all consumers
- * without re-rendering any component.
+ * utility-first framework output (Tailwind, UnoCSS) shared across the app.
+ * When the utility classes change (new theme color, spacing scale, …),
+ * `replaceSync()` propagates to every adopter without re-rendering a single
+ * component, and without a full-page reload.
  *
- * The CSS is loaded through Vite's pipeline (via `?url` + `fetch`), so
- * Lightning CSS transforms apply. The `?raw` import provides a sync
- * initial value to avoid FOUC; the pipeline-processed version replaces
- * it once fetched.
+ * Unlike the `?inline`/`?raw` shared-sheet demos (which bake the CSS into the
+ * JS bundle), `?url` keeps the stylesheet as a *standalone, pipeline-processed
+ * `.css` asset* in the build output and loads it into the constructed sheet
+ * at runtime via `fetch()`. That's the one way to have both a real `.css`
+ * file on disk and a sheet shared across shadow roots.
+ *
+ * Reading the asset back differs by mode:
+ * - build: `sheetUrl` is the hashed `.css` asset; fetch it as-is.
+ * - dev:   `?url` resolves to a path the dev server serves as a JS module
+ *          (`__vite__updateStyle(…)`), so a plain fetch would get JavaScript.
+ *          The `direct` query makes Vite return the compiled CSS bytes
+ *          (`text/css`) instead — pipeline-processed, same as build.
+ *
+ * Trade-off vs `?inline`: the sheet is empty until the first fetch resolves,
+ * so there's a brief flash of unstyled content on initial load. In exchange,
+ * the CSS ships as a cacheable file rather than inside the JS chunk.
  */
 const sheet = new CSSStyleSheet();
-sheet.replaceSync(rawCss);
-
-// Upgrade to pipeline-processed CSS when served through Vite's CSS pipeline
-fetch(sheetUrl)
-  .then((r) => r.text())
-  .then((css) => {
-    if (css) {
-      sheet.replaceSync(css);
-    }
-  })
-  .catch(() => {});
 
 export default sheet;
 
-if (import.meta.hot) {
-  // Accept ?raw to prevent HMR from bubbling to component modules and
-  // provide an instant (unprocessed) update while the fetch is in flight.
-  import.meta.hot.accept(['./hmr-utility-sheet.css?raw'], ([mod]) => {
-    if (mod) {
-      sheet.replaceSync((mod as {default: string}).default);
-    }
-  });
+const cssHref = (url: string): string =>
+  import.meta.env.DEV ? `${url}${url.includes('?') ? '&' : '?'}direct` : url;
 
-  // Accept ?url to re-fetch the pipeline-processed CSS after a change.
-  import.meta.hot.accept('./hmr-utility-sheet.css?url', () => {
-    fetch(`${sheetUrl}?t=${Date.now()}`)
-      .then((r) => r.text())
-      .then((css) => {
-        if (css) {
-          sheet.replaceSync(css);
-        }
-      })
-      .catch(() => {});
+const load = (url: string): Promise<void> =>
+  fetch(cssHref(url))
+    .then((r) => r.text())
+    .then((css) => sheet.replaceSync(css))
+    .catch(() => {});
+
+load(sheetUrl);
+
+if (import.meta.hot) {
+  // Self-accept the `?url` dependency: HMR stops here and never bubbles to
+  // the component modules that adopt this sheet, so they don't re-render.
+  // Each edit yields a freshly cache-busted `sheetUrl`; re-fetching it and
+  // calling `replaceSync()` updates every shadow root in place — no reload.
+  import.meta.hot.accept('./hmr-utility-sheet.css?url', (mod) => {
+    if (mod) {
+      load((mod as {default: string}).default);
+    }
   });
 }
