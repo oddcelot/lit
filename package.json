@@ -85,6 +85,7 @@
         "./packages/labs/task:build",
         "./packages/labs/testing:build",
         "./packages/labs/virtualizer:build",
+        "./packages/labs/vite-plugin-lit:build",
         "./packages/labs/vue-utils:build",
         "./packages/labs/test-projects/test-element-a:build",
         "./packages/localize/examples/runtime-js:build",
@@ -124,6 +125,7 @@
         "./packages/labs/task:build:ts",
         "./packages/labs/testing:build:ts",
         "./packages/labs/virtualizer:build:ts",
+        "./packages/labs/vite-plugin-lit:build:ts",
         "./packages/labs/vue-utils:build:ts"
       ]
     },
