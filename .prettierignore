@@ -428,6 +428,7 @@ packages/labs/virtualizer/events.js.map
 
 packages/labs/vite-plugin-lit/index.*
 packages/labs/vite-plugin-lit/lib/
+packages/labs/vite-plugin-lit/types/
 packages/labs/vite-plugin-lit/.e2e-tmp/
 packages/labs/vite-plugin-lit/.vite/
 packages/labs/vite-plugin-lit/**/*.tsbuildinfo
